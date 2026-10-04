@@ -175,6 +175,31 @@ for (const theme of ['light', 'dark']) {
     ok(JSON.stringify(shownBefore) === JSON.stringify(shownAfter), 'and with the same option order it was answered against')
   }
 
+  // 7b. /matching: one wrong pair fails the set; all right clears it; recorded.
+  {
+    const { MATCHING_SETS } = await import('../src/data/matchingSets.js')
+    const set = MATCHING_SETS.find(s => s.id === 'S6')
+    await page.goto(BASE + '/matching', { waitUntil: 'domcontentloaded' })
+    await page.click('[data-set="S6"]')
+    await page.waitForSelector('[data-match-row]')
+    const fill = async swap => {
+      const rows = await page.$$('[data-match-row]')
+      const lefts = await Promise.all(rows.map(r => r.$eval('p', p => p.textContent)))
+      const want = lefts.map(l => set.pairs.find(p => p.left === l).right)
+      if (swap) [want[2], want[3]] = [want[3], want[2]]
+      for (let i = 0; i < rows.length; i++) await (await rows[i].$('select')).selectOption(want[i])
+      await page.click('[data-check]')
+    }
+    await fill(true)
+    ok(await page.$('[data-match-result="wrong"]') !== null, '/matching: one swapped pair fails the whole set')
+    await overflow(page, '/matching set, revealed')
+    await page.click('[data-retry]')
+    await fill(false)
+    ok(await page.$('[data-match-result="right"]') !== null, '/matching: all pairs right clears the set')
+    const rec = await page.evaluate(k => JSON.parse(localStorage.getItem(k)).misses['MS-S6'], KEYS.progress)
+    ok(rec?.type === 'match' && rec.wrong === 1 && rec.right === 1 && rec.last === 'right', '/matching records the miss, then the clear', JSON.stringify(rec))
+  }
+
   // 8. The misses drill exists and starts.
   {
     await page.goto(BASE + '/exam', { waitUntil: 'domcontentloaded' })

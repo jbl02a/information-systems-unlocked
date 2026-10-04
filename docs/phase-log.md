@@ -55,11 +55,26 @@ themes, 390px: A-every-time averaged 26–28%, always-True 47%, matching fails o
 one swapped pair, reveals stay hidden, progress and an unfinished attempt survive
 a reload).
 
+## Phase 2 — Matching (2026-10-04)
+
+**What shipped**
+- `/matching`: **18 sets, 80 pairs**, grouped by topic with slide topics first,
+  graded all or nothing, both columns shuffled, opaque selects.
+- The page says plainly that **the pairings are ours**: the syllabus says the
+  test "may" include matching and nothing about what or how it is scored. Each
+  set's facts carry their source badge (13 from the slides, 5 textbook).
+- A set records as `MS-<id>` with `type: 'match'`, so a failed set stays on his
+  list until he clears it.
+
+**Verified:** `npm run bank` 142 checks (every set: no duplicates, all-right
+passes, one swapped pair fails, empty fails); `npm run themes` on the matching
+routes; `npm run browser` 50 checks, including a swapped pair failing a set on
+`/matching` and the miss then clear being recorded.
+
 ## Still open
 
-- **Matching surface** (`/matching`), **flashcards** (`/cards`), **cram sheet**
-  (`/cram`, two pages) and the **points-per-minute study plan**: next pushes, in
-  that order.
+- **Flashcards** (`/cards`), the **cram sheet** (`/cram`, two pages) and the
+  **points-per-minute study plan**: next pushes, in that order.
 - **Slides for hardware, software, acquiring IS and AI.** Follow
   `docs/README.md`, "Adding a slide deck".
 - **A possible Chapter 4 Part 3 deck** on security controls. Today those are

@@ -10,6 +10,7 @@ import { applyTheme, initTheme, saveTheme } from '../lib/theme'
 export const NAV = [
   { to: '/notes', label: 'Notes', active: 'bg-indigo-700' },
   { to: '/exam', label: 'Questions', active: 'bg-teal-700' },
+  { to: '/matching', label: 'Matching', active: 'bg-amber-700' },
 ]
 
 export default function Navbar({ links = NAV }) {

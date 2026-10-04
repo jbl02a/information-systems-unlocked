@@ -3,6 +3,7 @@ import { useProgress } from '../context/ProgressContext'
 import { useScrollTop } from '../lib/useScrollTop'
 import FormatNotice from '../components/FormatNotice'
 import { QUESTIONS } from '../data/questions'
+import { MATCHING_SETS } from '../data/matchingSets'
 import { TOPICS_BY_PRIORITY } from '../data/topics'
 
 // Teach first, then test: the notes lead the page.
@@ -84,6 +85,21 @@ export default function Home() {
               </p>
             </div>
             <span className="text-accent-strong font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/matching" className="block mb-8 group">
+        <div className="rounded-2xl border border-line bg-gradient-to-br from-amber-600/20 via-orange-600/20 to-rose-600/20 p-5 hover:border-warn transition-colors">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">🔀</span>
+            <div className="flex-1">
+              <h2 className="font-bold text-strong text-lg">Matching</h2>
+              <p className="text-sm text-dim">
+                {MATCHING_SETS.length} sets, {MATCHING_SETS.reduce((n, s) => n + s.pairs.length, 0)} pairs, all or nothing. The test may include matching; these pairings are ours.
+              </p>
+            </div>
+            <span className="text-warn font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>
         </div>
       </Link>
