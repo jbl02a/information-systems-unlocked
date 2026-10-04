@@ -22,7 +22,7 @@ import { KEYS } from '../src/lib/storage.js'
 
 const BASE = process.env.BASE ?? 'http://localhost:4715'
 const AA = 4.5
-const ROUTES = (process.env.ROUTES ?? '/,/notes,/notes/ethics,/notes/security,/notes/hardware,/notes/ai,/exam,/matching,/matching?set=S6').split(',')
+const ROUTES = (process.env.ROUTES ?? '/,/notes,/notes/ethics,/notes/security,/notes/hardware,/notes/ai,/exam,/matching,/matching?set=S6,/cards,/cards?deck=security').split(',')
 
 const audit = page => page.evaluate(AA => {
   const lum = c => {

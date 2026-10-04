@@ -200,6 +200,23 @@ for (const theme of ['light', 'dark']) {
     ok(rec?.type === 'match' && rec.wrong === 1 && rec.right === 1 && rec.last === 'right', '/matching records the miss, then the clear', JSON.stringify(rec))
   }
 
+  // 7c. Cards: the back stays hidden until flipped; "didn't" feeds the missed deck.
+  {
+    await page.goto(BASE + '/cards', { waitUntil: 'domcontentloaded' })
+    await page.click('[data-deck="security"]')
+    await page.waitForSelector('[data-card]')
+    ok(await page.$('[data-back]') === null, 'a card shows its front only until flipped')
+    await page.click('[data-card]')
+    ok(await page.$('[data-back]') !== null, 'tapping flips it')
+    await page.click('[data-didnt]')
+    await page.click('[data-card]'); await page.click('[data-knew]')
+    const m = await page.evaluate(k => Object.entries(JSON.parse(localStorage.getItem(k)).misses).filter(([id]) => id.startsWith('CARD-')), KEYS.progress)
+    ok(m.length === 2 && m.some(([, v]) => v.last === 'wrong' && v.type === 'card'), '"Didn\'t know" is recorded as a card miss')
+    await page.goto(BASE + '/cards', { waitUntil: 'domcontentloaded' })
+    ok((await page.textContent('[data-deck="missed"]')).includes('(1)'), 'the missed deck holds the one card he did not know')
+    await overflow(page, '/cards')
+  }
+
   // 8. The misses drill exists and starts.
   {
     await page.goto(BASE + '/exam', { waitUntil: 'domcontentloaded' })

@@ -26,10 +26,11 @@ their slides arrive.
 |---|---|
 | `/` | Home: notes first (teach, then test), topics by source, the format notice |
 | `/notes`, `/notes/:topic` | One lesson per topic, emphasized terms marked, a "know this" list with hidden answers |
-| `/matching` | 18 sets, 80 pairs, all or nothing; the pairings are ours |
+| `/matching` | 18 sets, 83 pairs, all or nothing; the pairings are ours |
+| `/cards` | 88 flashcards from the key terms; "didn't know" builds its own deck |
 | `/exam` | 133 items in all five syllabus formats; practice (default) and exam mode; topic, format and misses drills; a 40-item rehearsal (our mix) |
 
-Coming in later pushes: `/cards`, `/cram` and the study plan (see
+Coming in later pushes: `/cram` and the study plan (see
 `phase-log.md`).
 
 ## Adding a slide deck

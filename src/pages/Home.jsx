@@ -4,6 +4,7 @@ import { useScrollTop } from '../lib/useScrollTop'
 import FormatNotice from '../components/FormatNotice'
 import { QUESTIONS } from '../data/questions'
 import { MATCHING_SETS } from '../data/matchingSets'
+import { CARDS } from '../data/cards'
 import { TOPICS_BY_PRIORITY } from '../data/topics'
 
 // Teach first, then test: the notes lead the page.
@@ -100,6 +101,19 @@ export default function Home() {
               </p>
             </div>
             <span className="text-warn font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/cards" className="block mb-8 group">
+        <div className="rounded-2xl border border-line bg-gradient-to-br from-rose-600/20 to-pink-600/20 p-5 hover:border-focus transition-colors">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">🃏</span>
+            <div className="flex-1">
+              <h2 className="font-bold text-strong text-lg">Quick cram cards</h2>
+              <p className="text-sm text-dim">{CARDS.length} flashcards, one per key term. The ones you didn&rsquo;t know come back in their own deck.</p>
+            </div>
+            <span className="text-focus font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>
         </div>
       </Link>

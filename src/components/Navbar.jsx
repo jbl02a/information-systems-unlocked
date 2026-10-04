@@ -11,6 +11,7 @@ export const NAV = [
   { to: '/notes', label: 'Notes', active: 'bg-indigo-700' },
   { to: '/exam', label: 'Questions', active: 'bg-teal-700' },
   { to: '/matching', label: 'Matching', active: 'bg-amber-700' },
+  { to: '/cards', label: 'Cards', active: 'bg-rose-700' },
 ]
 
 export default function Navbar({ links = NAV }) {

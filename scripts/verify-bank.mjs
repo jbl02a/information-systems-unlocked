@@ -150,5 +150,14 @@ console.log('\nLessons')
   }
 }
 
+console.log('\nFlashcards')
+{
+  const { CARDS } = await import('../src/data/cards.js')
+  const ids = CARDS.map(c => c.id)
+  ok(new Set(ids).size === ids.length, `${ids.length} cards, every id unique (they key his misses)`)
+  ok(CARDS.every(c => c.front && c.back && SOURCES[c.src]), 'every card has a front, a back and a source')
+  ok(TOPICS.every(t => CARDS.some(c => c.topic === t.id)), 'every topic has cards')
+}
+
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)

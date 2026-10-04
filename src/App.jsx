@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import PracticeExam from './pages/PracticeExam'
 import { LessonsIndex, Lesson } from './pages/Lessons'
 import Matching from './pages/Matching'
+import Cards from './pages/Cards'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/notes/:lessonId" element={<Lesson />} />
               <Route path="/exam" element={<PracticeExam />} />
               <Route path="/matching" element={<Matching />} />
+              <Route path="/cards" element={<Cards />} />
             </Routes>
           </main>
           <footer className="app-foot text-center text-xs text-muted py-8">

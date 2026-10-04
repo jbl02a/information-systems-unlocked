@@ -264,6 +264,9 @@ export function Lesson() {
             className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-700 text-white font-bold hover:opacity-90 text-center">
             Quiz me on this topic →
           </Link>
+          <Link to={`/cards?deck=${lesson.topic}`} className="flex-1 py-2.5 rounded-xl bg-surface2 text-strong font-semibold hover:bg-surface3 text-center">
+            Flashcards
+          </Link>
         </div>
       </div>
 

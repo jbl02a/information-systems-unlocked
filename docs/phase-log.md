@@ -58,11 +58,11 @@ a reload).
 ## Phase 2 — Matching (2026-10-04)
 
 **What shipped**
-- `/matching`: **18 sets, 80 pairs**, grouped by topic with slide topics first,
+- `/matching`: **18 sets, 83 pairs**, grouped by topic with slide topics first,
   graded all or nothing, both columns shuffled, opaque selects.
 - The page says plainly that **the pairings are ours**: the syllabus says the
   test "may" include matching and nothing about what or how it is scored. Each
-  set's facts carry their source badge (13 from the slides, 5 textbook).
+  set's facts carry their source badge (12 from the slides, 6 textbook).
 - A set records as `MS-<id>` with `type: 'match'`, so a failed set stays on his
   list until he clears it.
 
@@ -71,10 +71,27 @@ passes, one swapped pair fails, empty fails); `npm run themes` on the matching
 routes; `npm run browser` 50 checks, including a swapped pair failing a set on
 `/matching` and the miss then clear being recorded.
 
+## Phase 3 — Quick cram cards (2026-10-04)
+
+**What shipped**
+- `/cards`: **88 flashcards**, one per lesson key term, so cards and notes can
+  never disagree. Decks: the ones he didn't know, the terms set in color, each
+  topic (slide topics first), or everything. Flip, then "knew it" or "didn't".
+  A toggle shows the meaning first instead of the term.
+- "Didn't know" records `CARD-<topic>-<term>` with `type: 'card'`; the
+  "ones I didn't know" deck is built from those and empties as he gets them.
+- Card ids derive from the term's wording. To reword a term without orphaning
+  his history, give the key term a `cardId` with the old slug.
+
+**Verified:** `npm run bank` 145 (card ids unique, every card sourced, every
+topic covered); `npm run themes` on `/cards`; `npm run browser` 60 checks,
+including the back staying hidden until flipped and a "didn't know" landing in
+the missed deck.
+
 ## Still open
 
-- **Flashcards** (`/cards`), the **cram sheet** (`/cram`, two pages) and the
-  **points-per-minute study plan**: next pushes, in that order.
+- The **cram sheet** (`/cram`, two pages) and the **points-per-minute study
+  plan**: next pushes.
 - **Slides for hardware, software, acquiring IS and AI.** Follow
   `docs/README.md`, "Adding a slide deck".
 - **A possible Chapter 4 Part 3 deck** on security controls. Today those are
