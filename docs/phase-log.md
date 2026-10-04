@@ -88,10 +88,27 @@ topic covered); `npm run themes` on `/cards`; `npm run browser` 60 checks,
 including the back staying hidden until flipped and a "didn't know" landing in
 the missed deck.
 
+## Phase 4 — Cram sheet and study plan (2026-10-04)
+
+**What shipped**
+- `/cram`: all six topics on **two Letter pages**, slide chapters first,
+  textbook-only sections labeled in their headings.
+- **Bug caught by rendering the PDF:** the section headings are white on a dark
+  band, and browsers drop background colors when printing by default, so on
+  paper they came out nearly invisible. They now force the band
+  (`print-color-adjust: exact`) and carry a border as a fallback.
+- The **points-per-minute study plan** on home, ordered by three stated
+  properties: *certain* (the slides and colored terms are what the instructor
+  taught and stressed), *cheap* (closed lists), *divisible* (matching is all or
+  nothing, so it needs a block of time). The textbook-only topics sit at step 5
+  because their content is likely but its emphasis is unknown.
+
+**Verified:** `npm run verify`; `npm run themes` on 12 routes in both themes;
+`npm run browser` 63 checks, including the cram sheet printing on 2 pages with
+no app chrome and its headings forced to print.
+
 ## Still open
 
-- The **cram sheet** (`/cram`, two pages) and the **points-per-minute study
-  plan**: next pushes.
 - **Slides for hardware, software, acquiring IS and AI.** Follow
   `docs/README.md`, "Adding a slide deck".
 - **A possible Chapter 4 Part 3 deck** on security controls. Today those are

@@ -225,15 +225,18 @@ select option:hover {
   .no-print { display: none !important; }
   nav, footer.app-foot { display: none !important; }
   main { max-width: none !important; padding: 0 !important; margin: 0 !important; }
-  /* The study-guide audit added the five planning types, the network design
-     process, forward/backward scheduling and aggregated vs granular. That
-     pushed the sheet to a third page; it is a ONE-SHEET artifact, so the print
-     type tightens instead of the content being cut. Still 2 pages. */
+  /* The cram sheet is held to two pages: when content is added, tighten the
+     print type here rather than cutting it. verify-browser prints it to PDF
+     and counts the pages. */
   .cram-page { border-radius: 0; padding: 0; font-size: 10.1px; line-height: 1.34; box-shadow: none; }
   .cram-page h1 { font-size: 17px; }
   .cram-head { padding-bottom: 5px; margin-bottom: 9px; }
   .cram-section { margin-bottom: 9px; }
   .cram-section h2 { font-size: 10.5px; padding: 2px 6px; margin-bottom: 5px; }
+  /* Browsers drop background colors when printing unless told otherwise, which
+     left these white headings nearly invisible on paper. Force the dark band;
+     and the border keeps the heading legible even where a browser ignores it. */
+  .cram-section h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #111827; }
   .cram-note { font-size: 9.3px; margin-top: 3px; }
   .cram-page td, .cram-page th { padding: 1.5px 5px; }
   .cram-page .mono { font-size: 9.3px; }

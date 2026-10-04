@@ -33,6 +33,10 @@ npm run browser   # end-to-end properties, both themes
 - attempt history, misses, and an **in-progress attempt survive a reload**, the
   attempt resuming at the same questions with the same option order;
 - an older save loads and a corrupt one starts fresh, with no page errors;
+- /matching fails a set on one swapped pair and records the miss, then the clear;
+- a flashcard's back stays hidden until flipped, and "didn't know" fills the missed deck;
+- the cram sheet prints on at most 2 Letter pages, hides the app chrome, and forces
+  its heading bands to print (browsers drop backgrounds by default);
 - no horizontal overflow at 390px.
 
 ## Traps hit while building this

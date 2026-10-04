@@ -9,6 +9,7 @@ import PracticeExam from './pages/PracticeExam'
 import { LessonsIndex, Lesson } from './pages/Lessons'
 import Matching from './pages/Matching'
 import Cards from './pages/Cards'
+import CramSheet from './pages/CramSheet'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="/exam" element={<PracticeExam />} />
               <Route path="/matching" element={<Matching />} />
               <Route path="/cards" element={<Cards />} />
+              <Route path="/cram" element={<CramSheet />} />
             </Routes>
           </main>
           <footer className="app-foot text-center text-xs text-muted py-8">

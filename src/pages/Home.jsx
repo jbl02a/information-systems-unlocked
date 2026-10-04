@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useProgress } from '../context/ProgressContext'
 import { useScrollTop } from '../lib/useScrollTop'
 import FormatNotice from '../components/FormatNotice'
+import StudyPlan from '../components/StudyPlan'
 import { QUESTIONS } from '../data/questions'
 import { MATCHING_SETS } from '../data/matchingSets'
 import { CARDS } from '../data/cards'
@@ -66,6 +67,8 @@ export default function Home() {
         ))}
       </div>
 
+      <StudyPlan className="mb-6" />
+
       <Link to="/exam" className="block mb-8 group">
         <div className="rounded-2xl border border-line bg-gradient-to-br from-teal-600/20 via-cyan-600/20 to-blue-600/20 p-5 hover:border-accent transition-colors">
           <div className="flex items-center gap-4">
@@ -114,6 +117,19 @@ export default function Home() {
               <p className="text-sm text-dim">{CARDS.length} flashcards, one per key term. The ones you didn&rsquo;t know come back in their own deck.</p>
             </div>
             <span className="text-focus font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/cram" className="block mb-8 group">
+        <div className="rounded-2xl border border-line bg-surface p-5 hover:border-line-strong transition-colors">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">🖨️</span>
+            <div className="flex-1">
+              <h2 className="font-bold text-strong text-lg">Cram sheet</h2>
+              <p className="text-sm text-dim">All six topics on two printed pages, for the night before.</p>
+            </div>
+            <span className="text-dim font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>
         </div>
       </Link>

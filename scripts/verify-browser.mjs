@@ -227,6 +227,30 @@ for (const theme of ['light', 'dark']) {
   await ctx.close()
 }
 
+// 8b. The cram sheet prints on at most two Letter pages, with no app chrome, and
+// its section headings survive a browser's default "no background graphics".
+{
+  console.log('\n── cram sheet, printed ──')
+  const fs = await import('node:fs')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const ctx = await browser.newContext()
+  const page = await ctx.newPage()
+  await page.goto(BASE + '/cram', { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.cram-page')
+  const file = path.join(os.tmpdir(), 'is-cram-check.pdf')
+  await page.pdf({ path: file, format: 'Letter' })
+  const pages = (fs.readFileSync(file, 'latin1').match(/\/Type\s*\/Page[^s]/g) || []).length
+  ok(pages >= 1 && pages <= 2, `the cram sheet prints on ${pages} page(s), limit 2`)
+  await page.emulateMedia({ media: 'print' })
+  const hidden = await page.evaluate(() => ['nav', 'footer.app-foot', '.no-print']
+    .every(sel => [...document.querySelectorAll(sel)].every(el => getComputedStyle(el).display === 'none')))
+  ok(hidden, 'printing hides the navbar, footer, toolbar and update prompt')
+  const adjust = await page.$eval('.cram-section h2', el => getComputedStyle(el).printColorAdjust || getComputedStyle(el).webkitPrintColorAdjust)
+  ok(adjust === 'exact', 'cram headings force their dark band to print', adjust)
+  await ctx.close()
+}
+
 // 9. An old or corrupt save never crashes the app, and keeps what it can.
 {
   console.log('\n── saved progress from elsewhere ──')
