@@ -1,0 +1,249 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme tokens ─────────────────────────────────────────────────────
+   Two themes, one set of names. Components use semantic classes (text-body,
+   bg-surface, border-line) and never a palette color, so switching themes is a
+   change of variables here rather than a change of markup.
+
+   LIGHT IS THE DEFAULT — see src/lib/theme.js. Dark is kept in full because this
+   app started dark and the palette is its identity: teal and cyan for anything
+   the student acts on, indigo for navigation, rose for the instructor's own
+   study list.
+
+   Contrast is enforced, not eyeballed: scripts/check-contrast.mjs reads these
+   blocks and fails the build if any text token drops below WCAG AA against the
+   surface it is painted on, in EITHER theme. The tightest pair in either theme
+   is 5.6:1. */
+:root[data-theme='light'] {
+  --c-page: 247 248 251;       /* cool off-white, matching the app's blue-gray cast */
+  --c-surface: 255 255 255;
+  --c-surface2: 238 241 246;
+  --c-surface3: 226 231 240;
+  --c-sunken: 232 236 243;
+  --c-line: 215 221 232;
+  --c-line-soft: 233 237 244;
+  --c-line-strong: 170 180 198;
+  --c-strong: 13 20 36;        /* headings */
+  --c-body: 38 49 74;          /* ordinary reading text */
+  --c-dim: 68 80 107;          /* secondary copy */
+  --c-muted: 88 100 126;       /* labels, badges, counters — chrome only */
+  --c-accent: 13 104 97;       /* teal: anything he acts on */
+  --c-accent-strong: 17 94 89;
+  --c-accent-soft: 232 246 244;
+  --c-accent-line: 150 205 199;
+  --c-brand: 67 56 202;        /* indigo: navigation */
+  --c-brand-soft: 238 240 253;
+  --c-brand-line: 176 182 240;
+  --c-ok: 22 101 52;
+  --c-ok-soft: 233 247 238;
+  --c-ok-line: 150 205 170;
+  --c-bad: 185 28 28;
+  --c-bad-soft: 254 236 236;
+  --c-bad-line: 240 170 170;
+  --c-info: 3 105 161;
+  --c-info-soft: 232 244 252;
+  --c-info-line: 155 200 230;
+  --c-warn: 146 64 14;
+  --c-warn-soft: 254 244 228;
+  --c-warn-line: 232 199 130;
+  --c-focus: 190 18 60;        /* rose: the instructor's study list */
+  --c-focus-soft: 254 237 241;
+  --c-focus-line: 240 180 195;
+  --c-select-hover: 219 226 240;
+  --c-grad-a: 15 118 110;      /* gradient headings, readable on white */
+  --c-grad-b: 14 116 144;
+  color-scheme: light;
+}
+
+:root,
+:root[data-theme='dark'] {
+  --c-page: 11 11 26;          /* #0b0b1a */
+  --c-surface: 22 22 41;       /* #161629 */
+  --c-surface2: 35 35 58;
+  --c-surface3: 48 48 74;
+  --c-sunken: 8 8 18;
+  --c-line: 45 45 70;
+  --c-line-soft: 32 32 52;
+  --c-line-strong: 76 76 110;
+  --c-strong: 255 255 255;
+  --c-body: 226 232 240;
+  --c-dim: 203 213 225;
+  --c-muted: 178 191 208;
+  --c-accent: 94 234 212;
+  --c-accent-strong: 45 212 191;
+  --c-accent-soft: 14 52 52;
+  --c-accent-line: 32 110 104;
+  --c-brand: 165 180 252;
+  --c-brand-soft: 30 30 68;
+  --c-brand-line: 70 72 150;
+  --c-ok: 134 239 172;
+  --c-ok-soft: 20 48 33;
+  --c-ok-line: 34 110 68;
+  --c-bad: 252 165 165;
+  --c-bad-soft: 61 24 24;
+  --c-bad-line: 150 55 55;
+  --c-info: 125 211 252;
+  --c-info-soft: 22 44 58;
+  --c-info-line: 42 100 132;
+  --c-warn: 252 211 77;
+  --c-warn-soft: 58 42 16;
+  --c-warn-line: 133 98 32;
+  --c-focus: 253 164 175;
+  --c-focus-soft: 60 22 32;
+  --c-focus-line: 150 60 80;
+  --c-select-hover: 43 43 77;
+  --c-grad-a: 45 212 191;
+  --c-grad-b: 34 211 238;
+  color-scheme: dark;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: rgb(var(--c-page));
+    color: rgb(var(--c-body));
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  .drag-over {
+    @apply ring-2 ring-brand bg-brand-soft;
+  }
+
+  /* A gradient heading is theme-blind if its stops are palette colors: teal-400
+     reads 12:1 on our near-black and 1.7:1 on white. These stops are variables,
+     so the heading stays legible in both themes. */
+  .grad-text {
+    background-image: linear-gradient(to right, rgb(var(--c-grad-a)), rgb(var(--c-grad-b)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Native <select> popups take their colors from the control itself, and a
+   translucent background composites against the page to a muddy gray — which
+   is what made the matching dropdowns unreadable when open. Both the control
+   and its options are painted opaque, in whichever theme is live. */
+select {
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-body));
+}
+select option {
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-body));
+}
+select option:checked,
+select option:hover {
+  background-color: rgb(var(--c-select-hover));
+  color: rgb(var(--c-strong));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgb(var(--c-surface2)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-line-strong)); border-radius: 3px; }
+
+/* The navbar link row scrolls on a phone; its scrollbar would sit on top of the
+   links, so hide the bar without disabling the scrolling. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Prevent text selection during drag */
+.no-select { user-select: none; }
+
+/* ── Printable pages (cram sheet, worksheet) ───────────────────────────
+   These render light-on-white even on screen, because their whole purpose
+   is paper. The dark app chrome is hidden when printing. */
+.cram-toolbar {
+  @apply flex items-start justify-between gap-4 mb-6;
+}
+.cram-page {
+  background: #fff;
+  color: #111827;
+  border-radius: 12px;
+  padding: 28px 30px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.cram-page h1 { font-size: 20px; font-weight: 800; margin: 0; }
+.cram-head { border-bottom: 2px solid #111827; padding-bottom: 8px; margin-bottom: 14px; }
+.cram-head p { font-size: 11px; color: #4b5563; margin: 2px 0 0; }
+.cram-section { margin-bottom: 15px; break-inside: avoid; }
+.cram-section h2 {
+  font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  background: #111827; color: #fff; padding: 3px 8px; border-radius: 4px; margin: 0 0 7px;
+}
+.cram-lead { margin: 0 0 7px; }
+.cram-note { margin: 6px 0 0; font-size: 11px; color: #374151; }
+.cram-small { font-size: 10.5px; color: #4b5563; }
+.cram-page table { width: 100%; border-collapse: collapse; }
+.cram-page th {
+  text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: #374151; border-bottom: 1px solid #9ca3af; padding: 3px 6px;
+}
+.cram-page td { padding: 3px 6px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+.cram-page .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.cram-list { margin: 0; padding-left: 18px; }
+.cram-list li { margin-bottom: 4px; }
+.tag-dr, .tag-cr {
+  font-size: 9.5px; font-weight: 800; padding: 1px 5px; border-radius: 3px; letter-spacing: .04em;
+}
+.tag-dr { background: #e0e7ff; color: #3730a3; }
+.tag-cr { background: #d1fae5; color: #065f46; }
+.cram-foot { margin-top: 16px; padding-top: 7px; border-top: 1px solid #9ca3af; font-size: 10px; color: #6b7280; text-align: center; }
+
+/* Worksheet-specific: blank ruled forms to write into */
+.ws-blank td { height: 22px; }
+.ws-rule td { border-bottom: 1px solid #9ca3af; }
+.t-account { border: 1px solid #111827; border-radius: 3px; break-inside: avoid; }
+.t-account .t-head { text-align: center; font-weight: 700; border-bottom: 1px solid #111827; padding: 3px; font-size: 11px; }
+.t-account .t-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 72px; }
+.t-account .t-body > div:first-child { border-right: 1px solid #111827; }
+.t-account .t-body > div { padding: 3px 5px; font-size: 10px; color: #6b7280; }
+
+/* Answer key: a reference sheet, so it is set denser than the worked pages. */
+.key-page .cram-section { margin-bottom: 9px; }
+.key-page td, .key-page th { padding: 1.5px 6px; }
+.key-page .cram-note { line-height: 1.35; }
+
+/* On a phone the cram tables are wider than the screen. Let each section scroll
+   on its own rather than pushing the whole page sideways. */
+@media (max-width: 640px) {
+  .cram-page { padding: 16px 14px; font-size: 11.5px; }
+  .cram-section { overflow-x: auto; }
+  .cram-page table { min-width: 460px; }
+}
+
+@media print {
+  @page { margin: 12mm; }
+  html, body { background: #fff !important; }
+  .no-print { display: none !important; }
+  nav, footer.app-foot { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+  /* The study-guide audit added the five planning types, the network design
+     process, forward/backward scheduling and aggregated vs granular. That
+     pushed the sheet to a third page; it is a ONE-SHEET artifact, so the print
+     type tightens instead of the content being cut. Still 2 pages. */
+  .cram-page { border-radius: 0; padding: 0; font-size: 10.1px; line-height: 1.34; box-shadow: none; }
+  .cram-page h1 { font-size: 17px; }
+  .cram-head { padding-bottom: 5px; margin-bottom: 9px; }
+  .cram-section { margin-bottom: 9px; }
+  .cram-section h2 { font-size: 10.5px; padding: 2px 6px; margin-bottom: 5px; }
+  .cram-note { font-size: 9.3px; margin-top: 3px; }
+  .cram-page td, .cram-page th { padding: 1.5px 5px; }
+  .cram-page .mono { font-size: 9.3px; }
+  .key-page { font-size: 8.9px; line-height: 1.28; }
+  .key-page .cram-section { margin-bottom: 4.5px; }
+  .key-page .cram-section h2 { font-size: 10.5px; padding: 2px 6px; margin-bottom: 5px; }
+  .key-page .cram-note { font-size: 8.4px; margin-top: 1px; }
+  .key-page td, .key-page th { padding: 1px 5px; }
+  .key-page .mono { font-size: 9px; }
+  .key-page .tag-dr, .key-page .tag-cr { font-size: 8px; padding: 0 4px; }
+  .break-before { break-before: page; }
+  .cram-section { break-inside: avoid; }
+}

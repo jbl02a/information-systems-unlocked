@@ -1,0 +1,35 @@
+{
+  "name": "information-systems-unlocked",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/check-no-sources.mjs && node scripts/check-contrast.mjs && vite build",
+    "preview": "vite preview",
+    "contrast": "node scripts/check-contrast.mjs",
+    "sources": "node scripts/check-no-sources.mjs",
+    "bank": "node scripts/verify-bank.mjs",
+    "progress": "node scripts/verify-progress.mjs",
+    "verify": "npm run sources && npm run progress && npm run bank && npm run contrast",
+    "themes": "node scripts/verify-themes.mjs",
+    "browser": "node scripts/verify-browser.mjs"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "playwright": "^1.49.1",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.16",
+    "vite": "^6.0.5",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}

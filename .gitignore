@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.claude
+
+# Course materials never enter this repo (CLAUDE.md rule 4). They live in the
+# sibling "information-systems materials" folder; this catches a stray copy.
+*.pptx
+*.ppt
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.key
+information-systems materials/
