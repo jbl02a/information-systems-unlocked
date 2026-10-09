@@ -108,12 +108,14 @@ export default function CramSheet() {
           </table>
           <p className="cram-note"><strong>Colonial Pipeline</strong> (May 2021): ransomware, 5+ days down, $4.4M paid; way in = inactive account&rsquo;s password on the dark web, via VPN.
             <strong> Phishing</strong> (anyone) &middot; <strong>spear phishing</strong> (specific targets) &middot; <strong>whaling</strong> (executives, HR). <strong>Never click links in e-mails/texts</strong>; never pay for a job.
-            <em> Textbook, not slides:</em> info extortion, alien software (adware, spyware), cyberterrorism, SCADA attacks.</p>
+            <strong> Alien software</strong> (secretly installed; not all malicious): adware (pop-ups), spyware (keyloggers, screen scrapers, stalkerware), spamware, tracking cookies. <strong>SCADA</strong> = controls refineries, water, power. <strong>Cyberterrorism</strong> (individuals, groups) vs <strong>cyberwarfare</strong> (countries). <em>Textbook only:</em> information extortion.</p>
         </section>
 
         <section className="cram-section">
-          <h2>Security controls (textbook, not slides)</h2>
-          <p className="cram-lead">Risk: <strong>acceptance</strong> (absorb) &middot; <strong>limitation</strong> (add controls) &middot; <strong>transference</strong> (insurance). Authentication = who you are: something you <strong>are</strong> (fingerprint), <strong>have</strong> (badge), <strong>do</strong> (voice), <strong>know</strong> (password). Authorization = what you may do (least privilege). Firewall, encryption (public key encrypts, private key decrypts), VPN, anti-malware. Backup sites: hot / warm / cold.</p>
+          <h2>Ch. 4 Part 4 &mdash; Controls &amp; risk management</h2>
+          <p className="cram-lead">Most attacks get in by <strong>phishing / spear phishing</strong> (human element). Defenses: <strong>education</strong>, <strong>security controls</strong>, <strong>risk management</strong>. <strong>&ldquo;The single most valuable control is user education and training.&rdquo;</strong></p>
+          <p className="cram-note"><strong>Physical</strong> (walls, locks, badges, guards) &middot; <strong>Access</strong> (passwords, biometrics, <strong>MFA</strong>; authentication = who you are, authorization = your level of access) &middot; <strong>Communications</strong>: firewall (keeps outsiders off the private network), anti-malware, <strong>whitelist</strong> (only these allowed) vs <strong>blacklist</strong> (these blocked), encryption (public key locks, private key unlocks; digital certificates), VPN, <strong>TLS</strong> (server&ndash;browser), employee monitoring, <strong>SIEM</strong> (real-time alerts).</p>
+          <p className="cram-note"><strong>Risk management</strong>: identify, control, minimize threats &mdash; <strong>impossible to eliminate all risk</strong>. Analysis: asset <strong>value</strong> &rarr; <strong>probability</strong> &rarr; <strong>compare</strong> costs. Mitigation = prevent + recover; <strong>acceptance</strong> (no controls) &middot; <strong>limitation</strong> (controls) &middot; <strong>transference</strong> (insurance). IS auditing (internal/external). Cyber insurance: <strong>1st party</strong> = your own costs; <strong>3rd party</strong> = when others sue you; cost by size/industry, data, revenue, security strength. After a breach: notify, fines/lawsuits; <strong>backups are key</strong>. <em>Textbook only:</em> are/have/do/know factors, hot/warm/cold sites.</p>
         </section>
 
         <section className="cram-section">

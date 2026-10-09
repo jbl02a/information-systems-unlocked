@@ -6,7 +6,8 @@
 // slide decks so far (received 2026-10-04):
 //
 //   Ethics & Privacy        Ch. 3   two decks (9/14, 9/16)
-//   Information Security    Ch. 4   two decks (9/28, 9/30)
+//   Information Security    Ch. 4   four decks (9/28, 9/30, and Parts 3–4 dated 10/7,
+//                                   received 2026-10-08)
 //
 // The other four have NO class material yet. They are built from standard
 // textbook content and labeled that way on every surface (`basis: 'book'`).
@@ -33,6 +34,8 @@ export const DECKS = {
   ch3b: { file: 'Chpt 3 Ethics and Privacy Part 2 9_16.pptx', date: '9/16', slides: 35, topic: 'ethics' },
   ch4a: { file: 'Chpt 4 Information Security Part 1 9_28.pptx', date: '9/28', slides: 35, topic: 'security' },
   ch4b: { file: 'Chpt 4 Information Security Part 2 9_30.pptx', date: '9/30', slides: 47, topic: 'security' },
+  ch4c: { file: 'Chpt 4 Information Security Part 3 10_7.pptx', date: '10/7', slides: 11, topic: 'security' },
+  ch4d: { file: 'Chpt 4 Information Security Part 4 10_7.pptx', date: '10/7', slides: 33, topic: 'security' },
 }
 
 export const TOPICS = [
@@ -43,8 +46,8 @@ export const TOPICS = [
   },
   {
     id: 'security', label: 'Information Security', chapter: 'Chapter 4', icon: '🛡️',
-    basis: 'slides', decks: ['ch4a', 'ch4b'],
-    blurb: 'Breaches and their cost, threat vs vulnerability, human error, social engineering, deliberate attacks.',
+    basis: 'slides', decks: ['ch4a', 'ch4b', 'ch4c', 'ch4d'],
+    blurb: 'Breaches and their cost, human error, social engineering, deliberate attacks, security controls, risk management.',
   },
   {
     id: 'hardware', label: 'Hardware', chapter: 'Technology Guide 1 (earlier editions)', icon: '🖥️',

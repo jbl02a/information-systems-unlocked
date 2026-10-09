@@ -162,7 +162,48 @@ export const MATCHING_SETS = [
       { left: 'Something you do', right: 'Your voice or signature' },
       { left: 'Something you know', right: 'A password or PIN' },
     ],
-    why: 'Textbook Chapter 4 content; the class decks stop before controls.',
+    why: 'Textbook Chapter 4 content. The Part 4 slides list passwords, biometrics and MFA as access controls but do not teach these four categories.',
+  },
+
+  {
+    id: 'S9', topic: 'security', src: 'slides', ref: 'ch4c s4–11',
+    title: 'Alien software and attacks on infrastructure',
+    pairs: [
+      { left: 'Adware', right: 'Causes pop-up advertisements' },
+      { left: 'Spyware', right: 'Collects personal information without consent' },
+      { left: 'Spamware', right: 'Sends unsolicited e-mail from harvested addresses' },
+      { left: 'Tracking cookie', right: 'Follows your path, time and clicks for marketing' },
+      { left: 'SCADA attack', right: 'Targets systems controlling refineries, water and power plants' },
+      { left: 'Cyberwarfare', right: 'Attacks carried out or sponsored by countries' },
+    ],
+    why: 'Part 3 of the Chapter 4 decks (10/7).',
+  },
+  {
+    id: 'S10', topic: 'security', src: 'slides', ref: 'ch4d s12–20',
+    title: 'Communications (network) controls',
+    pairs: [
+      { left: 'Firewall', right: 'Keeps unauthorized Internet users out of private networks' },
+      { left: 'Anti-malware', right: 'Finds and removes viruses, worms and other malware' },
+      { left: 'Whitelisting', right: 'Names the only apps or sites allowed' },
+      { left: 'Blacklisting', right: 'Names the apps or sites not allowed' },
+      { left: 'Encryption', right: 'Scrambles data; public key locks, private key unlocks' },
+      { left: 'TLS', right: 'Encrypts data between a Web server and browser' },
+      { left: 'SIEM', right: 'Real-time alerts of suspicious activity from collected logs' },
+    ],
+    why: 'Part 4, slides 12–20.',
+  },
+  {
+    id: 'S11', topic: 'security', src: 'slides', ref: 'ch4d s21–28',
+    title: 'Risk management and insurance',
+    pairs: [
+      { left: 'Risk acceptance', right: 'No controls; absorb any damage' },
+      { left: 'Risk limitation', right: 'Controls that minimize the impact' },
+      { left: 'Risk transference', right: 'Shift the risk, e.g. buy insurance' },
+      { left: 'Risk analysis', right: 'Value assets, estimate probability, compare costs' },
+      { left: 'First-party cyber insurance', right: 'Covers your own company’s breach costs' },
+      { left: 'Third-party cyber insurance', right: 'Covers you when another business sues' },
+    ],
+    why: 'Part 4, slides 21–28.',
   },
 
   // ── Textbook-only topics ────────────────────────────────────────────────

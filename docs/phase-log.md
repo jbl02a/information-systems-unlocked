@@ -107,11 +107,36 @@ the missed deck.
 `npm run browser` 63 checks, including the cram sheet printing on 2 pages with
 no app chrome and its headings forced to print.
 
+## Phase 5 — Chapter 4 Parts 3 and 4 (2026-10-08)
+
+The parent added two decks dated 10/7: **Part 3** (11 slides: alien software,
+SCADA, cyberterrorism vs cyberwarfare) and **Part 4** (33 slides: how attacks
+happen, education, the three control types, communications controls, auditing,
+risk analysis and mitigation, cyber liability insurance, what to do after a
+breach). Both were read from the raw XML, every colored run captured
+(`docs/sources.md`). This is the case the app was built for, and it went by the
+README's "Adding a slide deck" steps without restructuring anything:
+
+- `topics.js`: `ch4c`, `ch4d` added to the security topic.
+- **Lesson:** nine new slide sections; the textbook section shrank to the three
+  points no slide covers. **+24 key terms** (so +24 cards) plus four textbook terms upgraded to slides, **+10 know-this.**
+- **Questions:** `sec-54`–`sec-80`, 27 new slide items in all five formats.
+  Four textbook items were now on the slides and were **upgraded in place, same
+  ids**, so his history on them carries over.
+- **Matching:** `S9`–`S11` (alien software & infrastructure attacks,
+  communications controls, risk management & insurance).
+- **Cram sheet:** the "Security controls (textbook, not slides)" block became
+  "Controls & risk management" from Part 4. Still 2 printed pages.
+- `verify-bank` only accepted deck ids ending in a or b (`/^ch\d[ab] s/`); it now
+  accepts any letter.
+
+Now: **160 questions** (110 slides, 50 textbook), **21 matching sets, 102
+pairs**, **112 key terms / cards**, **44 know-this items**. `npm run verify`
+157/157, `npm run themes` all routes AA in both themes, `npm run browser` 63/63.
+
 ## Still open
 
 - **Slides for hardware, software, acquiring IS and AI.** Follow
   `docs/README.md`, "Adding a slide deck".
-- **A possible Chapter 4 Part 3 deck** on security controls. Today those are
-  textbook items in the security lesson.
 - **The Test 2 date and format mix.** Test 1 itself, or his quiz questions, would
   show the real formats and upgrade the textbook topics.

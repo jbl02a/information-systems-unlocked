@@ -37,7 +37,8 @@ React 18 · Vite 6 · Tailwind 3 · react-router-dom 6 · vite-plugin-pwa · Ver
   matching, fill-in-the-blank and short answer questions"*. **May**, not will.
 - **Not stated anywhere we have:** the format mix, the number of questions, how
   short answers are scored, and the date (the parent said "next week" on Oct 4).
-- **Class material received:** only the Chapter 3 and Chapter 4 decks. The other
+- **Class material received:** the Chapter 3 decks (2) and the Chapter 4 decks
+  (4, Parts 3–4 added 2026-10-08). The other
   four topics have no slides yet. See "Where content comes from".
 
 ## Where content comes from (the provenance rule)

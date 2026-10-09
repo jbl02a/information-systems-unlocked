@@ -36,7 +36,7 @@ console.log('\nEvery item')
   ok(QUESTIONS.every(q => SOURCES[q.src]), 'every item says where its fact came from (src)')
   ok(QUESTIONS.every(q => KINDS[q.kind]), 'every item is one of the five kinds')
   ok(QUESTIONS.every(q => typeof q.explanation === 'string' && q.explanation.length > 15), 'every item has an explanation')
-  const deckRef = /^ch\d[ab] s/
+  const deckRef = /^ch\d[a-z] s/
   ok(QUESTIONS.filter(q => q.src === 'slides').every(q => deckRef.test(q.ref ?? '') && DECKS[q.ref.slice(0, 4)]),
     'every slide item cites a real deck and slide')
   // A textbook item on a textbook-only topic is the norm; a slide item on a
@@ -146,7 +146,7 @@ console.log('\nLessons')
       `${l.id}: every section, key term and know-this item is tagged with its source`)
     ok(l.knowThis.length >= 3 && l.knowThis.every(k => k.q && k.a), `${l.id}: ${l.knowThis.length} know-this items, each with an answer`)
     if (t.basis !== 'slides') ok([...l.sections, ...l.keyTerms, ...l.knowThis].every(x => x.src !== 'slides'), `${l.id}: claims no slides (none exist)`)
-    else ok(l.sections.filter(s => s.src === 'slides').every(s => /^ch\d[ab] s/.test(s.ref ?? '')), `${l.id}: every slide section cites its slides`)
+    else ok(l.sections.filter(s => s.src === 'slides').every(s => /^ch\d[a-z] s/.test(s.ref ?? '')), `${l.id}: every slide section cites its slides`)
   }
 }
 
