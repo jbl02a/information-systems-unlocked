@@ -5,8 +5,9 @@ import { useScrollTop } from '../lib/useScrollTop'
 import { shuffle } from '../lib/bank'
 import Rich from '../components/Rich'
 import SourceBadge from '../components/SourceBadge'
-import { CARDS } from '../data/cards'
-import { TOPICS_BY_PRIORITY, topicById } from '../data/topics'
+import { CARDS as ALL_CARDS } from '../data/cards'
+import { topicsFor, topicById, unitById, unitOfTopic } from '../data/topics'
+import { useUnit, useSyncUnit } from '../context/UnitContext'
 
 const EMPH = { blue: 'text-info', red: 'text-bad', orange: 'text-warn', green: 'text-ok' }
 
@@ -14,8 +15,13 @@ const EMPH = { blue: 'text-info', red: 'text-bad', orange: 'text-warn', green: '
 // card on his misses list (type 'card') until a later "knew it" retires it.
 export default function Cards() {
   const { progress, record } = useProgress()
+  const { unit } = useUnit()
+  // This test's cards only. A ?deck=<topic> link from the other test still works.
+  const CARDS = ALL_CARDS.filter(c => unitOfTopic(c.topic) === unit)
   const [params, setParams] = useSearchParams()
   const deckId = params.get('deck') ?? params.get('topic') ?? ''
+  // A ?deck=<topic> link from the other test switches the test to match it.
+  useSyncUnit(topicById(deckId) ? unitOfTopic(deckId) : null)
   const [reverse, setReverse] = useState(false)
   const [i, setI] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -28,12 +34,12 @@ export default function Cards() {
   const DECKS = [
     { id: 'missed', label: `Ones I didn’t know (${missedIds.length})`, cards: CARDS.filter(c => missedIds.includes(c.id)) },
     { id: 'colored', label: 'Terms the instructor set in color', cards: CARDS.filter(c => c.emph) },
-    ...TOPICS_BY_PRIORITY.map(t => ({ id: t.id, label: `${t.icon} ${t.label}`, cards: CARDS.filter(c => c.topic === t.id) })),
-    { id: 'all', label: `Everything (${CARDS.length})`, cards: CARDS },
-  ]
+    ...topicsFor(unit).map(t => ({ id: t.id, label: `${t.icon} ${t.label}`, cards: CARDS.filter(c => c.topic === t.id) })),
+    { id: 'all', label: `Everything for ${unitById(unit).label} (${CARDS.length})`, cards: CARDS },
+  ].filter(d => d.id !== 'colored' || d.cards.length > 0)
   const deck = DECKS.find(d => d.id === deckId)
   // Shuffle once per deck choice, so the order does not change under him mid-run.
-  const order = useMemo(() => (deck ? shuffle(deck.cards) : []), [deckId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const order = useMemo(() => (deck ? shuffle(deck.cards) : []), [deckId, unit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function choose(id) {
     setParams(id ? { deck: id } : {})

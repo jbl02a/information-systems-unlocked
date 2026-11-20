@@ -10,8 +10,9 @@
     "contrast": "node scripts/check-contrast.mjs",
     "sources": "node scripts/check-no-sources.mjs",
     "bank": "node scripts/verify-bank.mjs",
+    "t3": "node scripts/t3/check.mjs",
     "progress": "node scripts/verify-progress.mjs",
-    "verify": "npm run sources && npm run progress && npm run bank && npm run contrast",
+    "verify": "npm run sources && npm run progress && npm run t3 && npm run bank && npm run contrast",
     "themes": "node scripts/verify-themes.mjs",
     "browser": "node scripts/verify-browser.mjs"
   },

@@ -1,34 +1,53 @@
 import { Link } from 'react-router-dom'
 import { useProgress } from '../context/ProgressContext'
+import { useUnit } from '../context/UnitContext'
 import { useScrollTop } from '../lib/useScrollTop'
 import FormatNotice from '../components/FormatNotice'
 import StudyPlan from '../components/StudyPlan'
-import { QUESTIONS } from '../data/questions'
+import { questionsIn } from '../lib/bank'
 import { MATCHING_SETS } from '../data/matchingSets'
 import { CARDS } from '../data/cards'
-import { TOPICS_BY_PRIORITY } from '../data/topics'
+import { topicsFor, unitOfTopic, unitById } from '../data/topics'
+
+// Per-test wording. Everything else on the page is counted from the data.
+const COPY = {
+  t2: {
+    intro: 'Built from the instructor’s Chapter 3 and 4 slide decks, including every term set in color, plus the four syllabus topics that have no slides yet, clearly labeled as textbook content.',
+    notes: 'Six lessons, one per topic. The slide-backed chapters come first, each ending with a “know this” list whose answers stay hidden until you try.',
+  },
+  t3: {
+    intro: 'Built from the instructor’s eight class decks since Test 2 (Chapters 5, 6, 7 and 9, data visualization and project management) and the assigned articles.',
+    notes: 'Seven lessons, one per topic, in the order they were taught. Each ends with a “know this” list whose answers stay hidden until you try.',
+  },
+}
+
+const basisNote = t => (t.basis === 'slides' ? `${t.chapter} · class slides` : t.basis === 'article' ? 'Assigned reading' : 'Textbook only · no slides yet')
 
 // Teach first, then test: the notes lead the page.
 export default function Home() {
   useScrollTop([])
   const { progress, needsWorkIds } = useProgress()
-  const best = progress.exam?.best
-  const weak = needsWorkIds('q').filter(id => QUESTIONS.some(q => q.id === id)).length
+  const { unit } = useUnit()
+  const U = unitById(unit)
+  const copy = COPY[unit]
+  const questions = questionsIn(unit)
+  const sets = MATCHING_SETS.filter(s => unitOfTopic(s.topic) === unit)
+  const cards = CARDS.filter(c => unitOfTopic(c.topic) === unit)
+  const topics = topicsFor(unit)
+  const best = progress.exam?.best?.[unit]
+  const weak = needsWorkIds('q').filter(id => questions.some(q => q.id === id)).length
   const read = id => progress.misses?.[`LESSON-${id}`]?.last === 'right'
 
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8 pt-2">
         <div className="inline-flex items-center gap-2 bg-accent-soft border border-accent-line rounded-full px-4 py-1.5 text-sm text-accent font-medium mb-5">
-          <span>🎯</span><span>Intro to Information Systems · Test 2</span>
+          <span>🎯</span><span>Intro to Information Systems · {U.label}</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-strong mb-4 leading-tight">
           Information systems, <span className="grad-text">unlocked</span>.
         </h1>
-        <p className="text-dim max-w-xl mx-auto">
-          Built from the instructor&rsquo;s Chapter 3 and 4 slide decks, including every term set in color, plus
-          the four syllabus topics that have no slides yet, clearly labeled as textbook content.
-        </p>
+        <p className="text-dim max-w-xl mx-auto">{copy.intro}</p>
       </div>
 
       {/* Read first, then test. */}
@@ -41,10 +60,7 @@ export default function Home() {
                 <h2 className="font-bold text-strong text-lg">Notes</h2>
                 <span className="text-xs font-bold text-brand bg-brand-soft border border-brand-line px-2 py-0.5 rounded-full">start here</span>
               </div>
-              <p className="text-sm text-dim">
-                Six lessons, one per topic. The slide-backed chapters come first, each ending with a &ldquo;know
-                this&rdquo; list whose answers stay hidden until you try.
-              </p>
+              <p className="text-sm text-dim">{copy.notes}</p>
             </div>
             <span className="text-brand font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>
@@ -52,7 +68,7 @@ export default function Home() {
       </Link>
 
       <div className="grid sm:grid-cols-2 gap-2 mb-6">
-        {TOPICS_BY_PRIORITY.map(t => (
+        {topics.map(t => (
           <Link key={t.id} to={`/notes/${t.id}`}
             className="rounded-xl border border-line bg-surface p-3 hover:border-brand hover:bg-surface2 transition-colors">
             <div className="flex items-center gap-2">
@@ -60,9 +76,7 @@ export default function Home() {
               <p className="font-semibold text-strong text-sm flex-1">{t.label}</p>
               {read(t.id) && <span className="text-[10px] font-bold text-ok">READ</span>}
             </div>
-            <p className={`text-[11px] font-semibold mt-1 ${t.basis === 'slides' ? 'text-ok' : 'text-warn'}`}>
-              {t.basis === 'slides' ? `${t.chapter} · class slides` : 'Textbook only · no slides yet'}
-            </p>
+            <p className={`text-[11px] font-semibold mt-1 ${t.basis === 'book' ? 'text-warn' : 'text-ok'}`}>{basisNote(t)}</p>
           </Link>
         ))}
       </div>
@@ -84,8 +98,8 @@ export default function Home() {
                 )}
               </div>
               <p className="text-sm text-dim">
-                {QUESTIONS.length} questions in all five syllabus formats: multiple choice, true/false, fill in the
-                blank, matching and short answer. Every one explained.
+                {questions.length} {U.label} questions in all five syllabus formats: multiple choice, true/false, fill
+                in the blank, matching and short answer. Every one explained.
               </p>
             </div>
             <span className="text-accent-strong font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
@@ -100,7 +114,7 @@ export default function Home() {
             <div className="flex-1">
               <h2 className="font-bold text-strong text-lg">Matching</h2>
               <p className="text-sm text-dim">
-                {MATCHING_SETS.length} sets, {MATCHING_SETS.reduce((n, s) => n + s.pairs.length, 0)} pairs, all or nothing. The test may include matching; these pairings are ours.
+                {sets.length} sets, {sets.reduce((n, s) => n + s.pairs.length, 0)} pairs, all or nothing. The test may include matching; these pairings are ours.
               </p>
             </div>
             <span className="text-warn font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
@@ -114,7 +128,7 @@ export default function Home() {
             <span className="text-4xl">🃏</span>
             <div className="flex-1">
               <h2 className="font-bold text-strong text-lg">Quick cram cards</h2>
-              <p className="text-sm text-dim">{CARDS.length} flashcards, one per key term. The ones you didn&rsquo;t know come back in their own deck.</p>
+              <p className="text-sm text-dim">{cards.length} flashcards, one per key term. The ones you didn&rsquo;t know come back in their own deck.</p>
             </div>
             <span className="text-focus font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>
@@ -127,7 +141,7 @@ export default function Home() {
             <span className="text-4xl">🖨️</span>
             <div className="flex-1">
               <h2 className="font-bold text-strong text-lg">Cram sheet</h2>
-              <p className="text-sm text-dim">All six topics on two printed pages, for the night before.</p>
+              <p className="text-sm text-dim">All {topics.length} {U.label} topics on two printed pages, for the night before.</p>
             </div>
             <span className="text-dim font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
           </div>

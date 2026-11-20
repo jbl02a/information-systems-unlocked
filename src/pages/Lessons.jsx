@@ -7,7 +7,20 @@ import SourceBadge from '../components/SourceBadge'
 import { LESSONS, lessonById } from '../data/lessons'
 import { QUESTIONS } from '../data/questions'
 import { MATCHING_SETS } from '../data/matchingSets'
-import { TOPICS_BY_PRIORITY, topicById, DECKS } from '../data/topics'
+import { topicsFor, topicById, unitOfTopic, unitById, DECKS, ARTICLES } from '../data/topics'
+import { useUnit, useSyncUnit } from '../context/UnitContext'
+
+// What a topic is built from, in one line.
+function basisLine(t) {
+  if (t.basis === 'slides') return `${t.chapter} · from the ${t.decks.map(d => DECKS[d].date).join(' and ')} class deck${t.decks.length > 1 ? 's' : ''}`
+  if (t.basis === 'article') return `${t.chapter} · the ${Object.keys(ARTICLES).length} assigned articles in the folder`
+  return `${t.chapter} · textbook only`
+}
+
+const INDEX_INTRO = {
+  t2: 'One lesson per Test 2 topic. The two with class slides come first, with every term the instructor set in color marked. Each ends with a “know this” list, answers hidden until you try.',
+  t3: 'One lesson per Test 3 topic, every one built from the instructor’s class decks or assigned articles, in the order they were taught. Each ends with a “know this” list, answers hidden until you try.',
+}
 
 const EMPH = {
   blue: 'text-info', red: 'text-bad', orange: 'text-warn', green: 'text-ok',
@@ -100,8 +113,9 @@ export function BookOnlyBanner({ topic }) {
 export function LessonsIndex() {
   useScrollTop([])
   const { progress } = useProgress()
+  const { unit } = useUnit()
   const read = id => progress.misses?.[`LESSON-${id}`]?.last === 'right'
-  const lessons = TOPICS_BY_PRIORITY.map(t => lessonById(t.id)).filter(Boolean)
+  const lessons = topicsFor(unit).map(t => lessonById(t.id)).filter(Boolean)
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -110,10 +124,7 @@ export function LessonsIndex() {
           <span>📚</span><span>Read this before the questions</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-strong mb-2">Notes</h1>
-        <p className="text-dim">
-          One lesson per Test 2 topic. The two with class slides come first, with every term the instructor set in
-          color marked. Each ends with a &ldquo;know this&rdquo; list, answers hidden until you try.
-        </p>
+        <p className="text-dim">{INDEX_INTRO[unit]}</p>
       </div>
 
       <div className="space-y-3 mb-8">
@@ -131,8 +142,8 @@ export function LessonsIndex() {
                   </div>
                   <p className="text-sm text-dim mt-0.5">{l.tagline}</p>
                   <div className="flex flex-wrap gap-2 mt-2 text-[11px]">
-                    <span className={`rounded-full border px-2 py-0.5 font-semibold ${t.basis === 'slides' ? 'text-ok border-ok-line bg-ok-soft' : 'text-warn border-warn-line bg-warn-soft'}`}>
-                      {t.basis === 'slides' ? `${t.chapter} · ${t.decks.length} class decks` : `${t.chapter} · textbook only`}
+                    <span className={`rounded-full border px-2 py-0.5 font-semibold ${t.basis === 'book' ? 'text-warn border-warn-line bg-warn-soft' : 'text-ok border-ok-line bg-ok-soft'}`}>
+                      {t.basis === 'slides' ? `${t.chapter} · ${t.decks.length} class deck${t.decks.length > 1 ? 's' : ''}` : t.basis === 'article' ? `${t.chapter} · assigned` : `${t.chapter} · textbook only`}
                     </span>
                     <span className="rounded-full bg-sunken border border-line px-2 py-0.5 text-dim">~{l.minutes} min</span>
                     <span className="rounded-full bg-sunken border border-line px-2 py-0.5 text-dim">{l.keyTerms.length} key terms</span>
@@ -152,6 +163,8 @@ export function Lesson() {
   const { lessonId } = useParams()
   const lesson = lessonById(lessonId)
   const { record } = useProgress()
+  // Opening another test's lesson (a link, a bookmark) switches the test to match.
+  useSyncUnit(lesson ? unitOfTopic(lesson.topic) : null)
   useScrollTop([lessonId])
 
   if (!lesson) {
@@ -166,7 +179,7 @@ export function Lesson() {
   const t = topicById(lesson.topic)
   const qCount = QUESTIONS.filter(q => q.topic === lesson.topic).length
   const mCount = MATCHING_SETS.filter(m => m.topic === lesson.topic).length
-  const order = TOPICS_BY_PRIORITY.map(x => x.id)
+  const order = topicsFor(unitOfTopic(lesson.topic)).map(x => x.id)
   const next = lessonById(order[order.indexOf(lesson.id) + 1])
   const anyEmph = lesson.keyTerms.some(k => k.emph) || lesson.knowThis.some(k => k.emph)
 
@@ -178,17 +191,13 @@ export function Lesson() {
         <p className="text-4xl mb-2">{lesson.icon}</p>
         <h1 className="text-3xl font-extrabold text-strong">{lesson.title}</h1>
         <p className="text-dim mt-1">{lesson.tagline}</p>
-        <p className="text-xs text-dim mt-2">
-          {t.basis === 'slides'
-            ? `${t.chapter} · from the ${t.decks.map(d => DECKS[d].date).join(' and ')} class decks`
-            : `${t.chapter} · textbook only`}
-        </p>
+        <p className="text-xs text-dim mt-2">{basisLine(t)}</p>
       </div>
 
-      {t.basis !== 'slides' && <BookOnlyBanner topic={t} />}
+      {t.basis === 'book' && <BookOnlyBanner topic={t} />}
 
       {lesson.sections.map((sec, i) => (
-        <section key={i} className={`mb-7 ${sec.src === 'book' && t.basis === 'slides' ? 'rounded-2xl border border-warn-line p-4' : ''}`}>
+        <section key={i} className={`mb-7 ${sec.src === 'book' && t.basis !== 'book' ? 'rounded-2xl border border-warn-line p-4' : ''}`}>
           <div className="flex items-start gap-2 flex-wrap mb-2 pb-1 border-b border-line">
             <h2 className="text-lg font-bold text-strong flex-1 min-w-0">{sec.heading}</h2>
             <SourceBadge src={sec.src} at={sec.ref} className="mt-1" />
@@ -245,8 +254,10 @@ export function Lesson() {
             <p className="text-[11px] font-bold uppercase tracking-wider text-focus mb-1">🎯 Know this</p>
             <p className="text-xs text-dim mb-3">
               {t.basis === 'slides'
-                ? 'Our list, built from what the instructor defined and set in color. There is no instructor study guide for Test 2, so this is not one. Answer out loud first, then check.'
-                : 'Our list of the core textbook ideas. Answer out loud first, then check.'}
+                ? `Our list, built from what the instructor defined and set in color. There is no instructor study guide for ${unitById(t.unit).label}, so this is not one. Answer out loud first, then check.`
+                : t.basis === 'article'
+                  ? 'Our list of what each article teaches, and the Assignment 5 questions these articles answer. Answer out loud first, then check.'
+                  : 'Our list of the core textbook ideas. Answer out loud first, then check.'}
             </p>
             <KnowList items={lesson.knowThis} />
           </div>

@@ -134,9 +134,89 @@ Now: **160 questions** (110 slides, 50 textbook), **21 matching sets, 102
 pairs**, **112 key terms / cards**, **44 know-this items**. `npm run verify`
 157/157, `npm run themes` all routes AA in both themes, `npm run browser` 63/63.
 
+## Phase 6 — Test 3, and units (2026-11-20)
+
+The parent added eight class decks taught since Test 2 (Chapters 5, 6, 7 and 9,
+Data Visualization, Project Management), four assigned articles, the reading
+list and four assignments, and said the next exam is coming up. No file gives
+the date, format or coverage (`docs/sources.md`, "Test 3").
+
+**Units, copied from accounting-unlocked.** The app had one test; it now has two.
+- `topics.js` gains `UNITS` (`t2`, `t3`), each topic a `unit`, and
+  `topicsFor(unit)` / `unitOfTopic()`. Test 3 is the default.
+- `UnitContext` and `UnitSwitcher` sit under the nav: "Studying: Test 2 | Test 3",
+  remembered per device, and `?unit=` on any URL wins. Opening a lesson, set or card
+  deck from the other test switches to match.
+- Every page shows only the active test: home, notes, questions, matching, cards,
+  the study plan, the format notice and the cram sheet.
+- **Progress v2.** `best` is per test (`{ t2, t3 }`), attempts carry `unit`, and the
+  cap is per test and kind. A v1 save's best and attempts are filed under Test 2.
+  A saved session remembers its test, so a resumed Test 3 rehearsal records
+  against Test 3. "Clear list" clears only the active test's misses.
+- No one-time "move to the new unit" flag was needed: no device had a remembered
+  unit before this. **The next unit will need one** (accounting's rule 20).
+
+**Content, all new ids:**
+
+| Topic | Questions | Key terms / cards | Know-this | Matching sets |
+|---|---|---|---|---|
+| Data & Knowledge Mgmt (Ch. 5) | 61 | 42 | 11 | 5 |
+| Telecommunications & Networking (Ch. 6) | 66 | 48 | 12 | 6 |
+| Data Visualization | 25 | 17 | 8 | 3 |
+| Project Management | 43 | 28 | 10 | 5 |
+| E-Commerce (Ch. 7) | 53 | 32 | 12 | 5 |
+| Social Computing (Ch. 9) | 33 | 25 | 11 | 4 |
+| Assigned Articles | 33 | 20 | 8 | 4 |
+| **Test 3** | **314** | **210** | **72** | **32 (160 pairs)** |
+
+That is 189 multiple choice, 63 true/false, 28 fill in the blank, 16 matching and
+18 short answer. 271 test slide facts and 33 test the articles; 9 are textbook
+(terms the slides name but never define, labeled) and 1 is ours.
+
+- **New source, `article`** ("Assigned article" badge), for the four articles.
+  The rehearsal treats articles as class material, like slides.
+- **Workflow.** Opus read nothing secondhand: five reading passes transcribed
+  every slide, image and article. Writing passes then built one module per topic
+  in `src/data/t3/`, each gated by `scripts/t3/check.mjs`, which checks:
+  - shapes and ids
+  - refs inside the deck's slide count
+  - at least 80% class material
+  - true/false 40–60% True
+  - the right answer is not the longest option in more than 45% of items
+  - American spelling
+  - no instructor pronouns
+  - quotes under 15 words
+
+  An independent fact-check pass then compared every item with the transcripts
+  (fixes listed in `sources.md`).
+- **Grader:** fill in the blank now accepts -y / -ies plurals both ways
+  (opportunity = opportunities).
+- **Test 3 cram sheet** (`CramSheetT3.jsx`): every topic plus the articles on two
+  printed pages.
+- **Test 3 study plan:** every topic has class material, so the "less certain
+  textbook" step is gone. The order is know-this lists, then the articles (short
+  and closed), then key-term cards, then the rehearsal, then misses, then matching.
+
+**Verified:**
+- `npm run verify`: progress 19, seven topic checks, bank 356, contrast.
+- `npm run themes`: 25 routes, both tests, both themes, AA and no overflow.
+- `npm run browser`: 132 checks. Every property runs for Test 2 and Test 3 in both
+  themes at 390px. Answering A every time stays at chance, and each test's drills
+  serve only its own items. A blank Test 3 rehearsal records under Test 3 only.
+  "Clear list" on Test 3 keeps Test 2's misses and holds. A Test 2-era save shows
+  its best under Test 2. Both cram sheets print on 2 pages.
+
 ## Still open
 
-- **Slides for hardware, software, acquiring IS and AI.** Follow
-  `docs/README.md`, "Adding a slide deck".
-- **The Test 2 date and format mix.** Test 1 itself, or his quiz questions, would
-  show the real formats and upgrade the textbook topics.
+- **The Test 3 date, format and coverage.** Nothing in the materials says. If the
+  instructor gives a study guide or review, it outranks everything: add it as a
+  source and rebuild the know-this lists from it.
+- **Seven of the nine reading-list articles are not in the folder**, including
+  the two Assignment 5 needs for Q5 (botnets) and Q7 (North Korean IT workers).
+  Drop them in the materials folder and add them (`sources.md`, "The assigned
+  articles").
+- **Slides for hardware, software, acquiring IS and AI (Test 2).** Follow
+  `docs/README.md`, "Adding a slide deck". Test 2 is past, so this is only
+  worth doing if the final is cumulative.
+- **The next unit** (a final?) needs a one-time move flag so devices that
+  remember `t3` land on it (copy accounting-unlocked's `…-unit-moved-u4`).

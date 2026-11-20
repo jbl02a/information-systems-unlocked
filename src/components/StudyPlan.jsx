@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { useProgress } from '../context/ProgressContext'
 import { LESSONS } from '../data/lessons'
 import { CARDS } from '../data/cards'
+import { useUnit } from '../context/UnitContext'
+import { unitOfTopic } from '../data/topics'
 
 // The order answers one question: if he runs out of time, what should already be
 // done? So it is sorted by POINTS PER MINUTE, not by the size of each pile.
@@ -21,13 +23,16 @@ import { CARDS } from '../data/cards'
 //                time spent for nothing.
 //
 // If you reorder this, say which property changed. Do not reorder by total points.
-export default function StudyPlan({ className = '' }) {
-  const { progress } = useProgress()
+//
+// TEST 3 changes the order because the facts changed: every Test 3 topic has
+// class material, so there is no "less certain" textbook step to push last.
+// What is left to rank is CHEAP vs EXPENSIVE: the know-this lists first (closed,
+// divisible), then the four articles (a short, closed set of facts tied to an
+// assignment he has done), then the key-term cards, then the rehearsal.
+function stepsT2(best) {
   const slideKnow = LESSONS.filter(l => l.topic === 'ethics' || l.topic === 'security').reduce((n, l) => n + l.knowThis.length, 0)
-  const colored = CARDS.filter(c => c.emph).length
-  const best = progress.exam?.best
-
-  const STEPS = [
+  const colored = CARDS.filter(c => c.emph && unitOfTopic(c.topic) === 't2').length
+  return [
     {
       n: 1, title: `The ${slideKnow} know-this items for Chapters 3 and 4`, to: '/notes/security', mins: '~25 min',
       tag: 'Certain, cheap, divisible',
@@ -65,6 +70,62 @@ export default function StudyPlan({ className = '' }) {
       cta: 'Open matching',
     },
   ]
+}
+
+function stepsT3(best) {
+  const mine = LESSONS.filter(l => unitOfTopic(l.topic) === 't3')
+  const know = mine.filter(l => l.topic !== 'articles').reduce((n, l) => n + l.knowThis.length, 0)
+  const cards = CARDS.filter(c => unitOfTopic(c.topic) === 't3' && c.topic !== 'articles').length
+  return [
+    {
+      n: 1, title: `The ${know} know-this items across the six class topics`, to: '/notes/data', mins: '~40 min',
+      tag: 'Certain, cheap, divisible',
+      why: 'Built from what the instructor defined and listed on the slides. Data management and networking are the two biggest decks, so start there.',
+      cta: 'Start with Data & Knowledge Management',
+    },
+    {
+      n: 2, title: 'The four assigned articles', to: '/notes/articles', mins: '~15 min',
+      tag: 'Assigned, short, closed',
+      why: 'A handful of facts per article, and they tie to the Cybersecurity assignment. Easy points to bank once.',
+      cta: 'Read the articles lesson',
+    },
+    {
+      n: 3, title: `The ${cards} key-term cards`, to: '/cards?deck=all', mins: '~20 min',
+      tag: 'Fast vocabulary check',
+      why: 'One card per term the slides define. Say the definition before you flip; the ones you miss come back in their own deck.',
+      cta: 'Flip the Test 3 cards',
+    },
+    {
+      n: 4, title: 'A 40-question rehearsal, exam mode', to: '/exam', mins: '~35 min',
+      tag: 'Stop guessing what is weak',
+      why: 'All five formats, drawn from every Test 3 topic in proportion to how much was taught. It tells you where the remaining time should go.',
+      cta: best != null ? `Beat your ${best}%` : 'Take the rehearsal',
+    },
+    {
+      n: 5, title: 'Drill what you missed', to: '/exam?scope=misses', mins: 'varies',
+      tag: 'Your data, not our guess',
+      why: 'Every Test 3 question you got wrong, re-served with the reason after each.',
+      cta: 'Drill my misses',
+    },
+    {
+      n: 6, title: 'Matching and short answer', to: '/matching', mins: '~25 min',
+      tag: 'Finish what you start',
+      why: 'The syllabus says these formats may appear. A matching set is all or nothing, so give it a real block of time rather than the last five minutes.',
+      cta: 'Open matching',
+    },
+  ]
+}
+
+const THIRTY = {
+  t2: 'Do step 1, then step 2 if there is time. They are the material the instructor actually taught and stressed.',
+  t3: 'Do the know-this lists for the topics you feel least sure of, then the articles. Both are the instructor’s own material.',
+}
+
+export default function StudyPlan({ className = '' }) {
+  const { progress } = useProgress()
+  const { unit } = useUnit()
+  const best = progress.exam?.best?.[unit]
+  const STEPS = unit === 't3' ? stepsT3(best) : stepsT2(best)
 
   return (
     <div className={`rounded-2xl border border-accent-line bg-accent-soft p-5 ${className}`}>
@@ -97,8 +158,7 @@ export default function StudyPlan({ className = '' }) {
       <div className="mt-4 rounded-xl border border-warn-line bg-warn-soft p-3.5">
         <p className="text-xs font-bold uppercase tracking-wider text-warn mb-1">If you only have 30 minutes</p>
         <p className="text-sm text-body leading-relaxed">
-          Do step 1, then step 2 if there is time. They are the material the instructor actually taught and stressed.
-          Do not open a matching set with five minutes left: an unfinished set scores nothing.
+          {THIRTY[unit]} Do not open a matching set with five minutes left: an unfinished set scores nothing.
         </p>
       </div>
     </div>

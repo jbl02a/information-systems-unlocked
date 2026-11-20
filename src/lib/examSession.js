@@ -3,6 +3,7 @@
 // Only item IDs and layouts are stored, never item text, so edits to the bank
 // never resurrect stale wording; anything that no longer exists is dropped.
 import { KEYS } from './storage'
+import { UNIT_IDS } from '../data/topics.js'
 const KEY = KEYS.session
 const MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14 // two weeks; older than that, start fresh
 
@@ -39,6 +40,9 @@ export function loadExamSession(validIds) {
       // Anything unrecognized is a drill: misclassifying a drill as a rehearsal
       // would inflate the best score.
       scopeKind: s.scopeKind === 'exam' ? 'exam' : 'drill',
+      // Which test the run belongs to, so a resumed rehearsal records against the
+      // right best score. Sessions saved before units existed were Test 2.
+      unit: UNIT_IDS.includes(s.unit) ? s.unit : 't2',
       answeredCount: Object.keys(answers).length,
       savedAt: s.savedAt,
     }

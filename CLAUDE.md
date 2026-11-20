@@ -2,8 +2,9 @@
 
 An interactive study tool for **Introduction to Information Systems** (textbook:
 Rainer & Prince, *Introduction to Information Systems*, 10th ed.), built for one
-student, a college freshman, for **Test 2**. Static React SPA, no backend, no
-login, all state in the browser. A sibling of `accounting-unlocked`,
+student, a college freshman, for **Test 2 and Test 3** (a switcher under the nav;
+Test 3 is the default). Static React SPA, no backend, no login, all state in the
+browser. A sibling of `accounting-unlocked`,
 `Supply-chain-unlocked` and `macro-unlocked` in the same folder: code is COPIED
 from them, never imported, and no repo depends on another.
 
@@ -18,7 +19,8 @@ npm install
 npx playwright install chromium   # once, for the browser checks
 npm run dev
 npm run build                     # no-sources gate + contrast gate + vite build
-npm run verify                    # sources, progress migration, bank, contrast (node only)
+npm run verify                    # sources, progress migration, Test 3 topic checks, bank, contrast (node only)
+npm run t3                        # one module per Test 3 topic: node scripts/t3/check.mjs [topic]
 npx vite preview --port 4715      # then, in another shell:
 npm run themes                    # rendered contrast + 390px overflow, both themes
 npm run browser                   # end-to-end properties, both themes, 390px
@@ -41,6 +43,17 @@ React 18 · Vite 6 · Tailwind 3 · react-router-dom 6 · vite-plugin-pwa · Ver
   (4, Parts 3–4 added 2026-10-08). The other
   four topics have no slides yet. See "Where content comes from".
 
+## What Test 3 is, and what we do not know
+
+- **Scope: ours.** No study guide, topic list or date is in the materials. The
+  unit is every class deck since Test 2 (Ch. 5 data, Ch. 6 networking, data
+  visualization, project management, Ch. 7 e-commerce, Ch. 9 social computing)
+  plus the four assigned articles in the folder. `FormatNotice` says it is ours.
+- **Formats:** the syllabus's five "may" formats, as for Test 2.
+- **Content lives in `src/data/t3/<topic>.js`** (LESSON, QUESTIONS, MATCHING_SETS),
+  appended to the bank by `src/data/t3/index.js`. Each module must pass
+  `node scripts/t3/check.mjs <topic>`. See `docs/sources.md`, "Test 3".
+
 ## Where content comes from (the provenance rule)
 
 Every lesson section, key term, know-this item, question, card and matching set
@@ -51,8 +64,9 @@ carries `src`:
 | `slides` | On the instructor's class slides; also carries `ref` (deck + slide) | Class slides |
 | `book` | Standard textbook content, **not** from the class slides. Written from general knowledge of the Rainer & Prince text's earlier editions; not checked against the 10th edition | Textbook, not slides |
 | `ours` | Our own example, built to practice an idea | Our example |
+| `article` | One of the instructor's assigned articles (Test 3); `ref` is its id in `ARTICLES`. Summarized, never quoted at length | Assigned article |
 
-Topics carry `basis: 'slides' | 'book'` in `src/data/topics.js`. Slide items
+Topics carry `basis: 'slides' | 'article' | 'book'` in `src/data/topics.js`. Slide items
 outrank textbook items everywhere (rehearsal draw, study plan, notes order).
 **When a deck arrives for a textbook-only topic, follow `docs/README.md`,
 "Adding a slide deck": nothing gets restructured.**
@@ -118,6 +132,16 @@ outrank textbook items everywhere (rehearsal draw, study plan, notes order).
     a `<select>` a `/opacity` background.
 16. **Vercel Analytics stays invisible and cookieless.** `<Analytics />` is in
     `App.jsx`; nothing about it appears in the UI.
+17. **Units (tests) are a switcher, not a second app.** `UNITS` in `topics.js`;
+    a topic's `unit` decides where every item shows. Every page filters to the
+    active unit, and the best score, attempt history, saved session and "Clear
+    list" are per unit (progress v2). A link to another unit's lesson, set or
+    deck switches the unit to match (`useSyncUnit`). **A new default unit needs
+    a one-time move flag** (devices remember their unit), as in
+    accounting-unlocked. See `docs/README.md`, "Adding a unit".
+18. **Assigned articles are copyrighted.** Summarize; no quotation of 15 words or
+    more (`scripts/t3/check.mjs` fails on one). Articles count as class
+    material, the same as slides, in the rehearsal and priority.
 
 ## House language: American English
 

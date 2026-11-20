@@ -7,18 +7,23 @@ import MatchGrid from '../components/MatchGrid'
 import Rich from '../components/Rich'
 import { useScrollTop } from '../lib/useScrollTop'
 import { saveExamSession, loadExamSession, clearExamSession, describeAge } from '../lib/examSession'
-import { questionsFor, prepare, layoutOf, shuffle, REHEARSAL_SIZE } from '../lib/bank'
+import { questionsFor, questionsIn, prepare, layoutOf, shuffle, REHEARSAL_SIZE } from '../lib/bank'
 import { creditFor, isFullyRight } from '../lib/grade'
 import { QUESTIONS, KINDS } from '../data/questions'
-import { TOPICS_BY_PRIORITY, topicById } from '../data/topics'
+import { topicsFor, topicById, unitById, unitOfTopic } from '../data/topics'
+import { useUnit } from '../context/UnitContext'
 
 const BY_ID = Object.fromEntries(QUESTIONS.map(q => [q.id, q]))
 
-const SCOPES = [
-  { id: 'rehearsal', label: `Rehearsal (${REHEARSAL_SIZE})`, icon: '⏱️', kind: 'exam',
-    blurb: 'A mix of all six topics, weighted toward the two with class slides. The mix is ours.' },
-  { id: 'full', label: `Every question (${QUESTIONS.length})`, icon: '📚', kind: 'drill',
-    blurb: 'The whole bank, every topic and every format.' },
+// The two whole-test scopes, per unit. The rehearsal's mix is ours either way.
+const REHEARSAL_BLURB = {
+  t2: 'A mix of all six topics, weighted toward the two with class slides. The mix is ours.',
+  t3: 'A mix of every Test 3 topic, in proportion to how much each was taught. The mix is ours.',
+}
+const scopesFor = unit => [
+  { id: 'rehearsal', label: `${unitById(unit).label} rehearsal (${REHEARSAL_SIZE})`, icon: '⏱️', kind: 'exam', blurb: REHEARSAL_BLURB[unit] },
+  { id: 'full', label: `Every ${unitById(unit).label} question (${questionsIn(unit).length})`, icon: '📚', kind: 'drill',
+    blurb: 'The whole bank for this test, every topic and every format.' },
 ]
 
 // ── One item, any kind ──────────────────────────────────────────────────────
@@ -202,6 +207,10 @@ function givenText(item, given) {
 export default function PracticeExam() {
   const [params] = useSearchParams()
   const { progress, recordExam, needsWorkIds, setHold, isHeld, clearMisses } = useProgress()
+  const { unit } = useUnit()
+  // The unit a run belongs to is fixed when it starts (or is resumed), so
+  // switching tests mid-run cannot file a Test 3 rehearsal under Test 2.
+  const [runUnit, setRunUnit] = useState(unit)
   const [stage, setStage] = useState('setup')
   const [mode, setMode] = useState('practice')
   const [scopeLabel, setScopeLabel] = useState('')
@@ -213,9 +222,12 @@ export default function PracticeExam() {
   const [saved, setSaved] = useState(() => loadExamSession(QUESTIONS.map(q => q.id)))
   useScrollTop([stage, index])
 
-  const best = progress.exam?.best
-  const attempts = progress.exam?.attempts || []
-  const weakIds = needsWorkIds('q').filter(id => BY_ID[id])
+  const best = progress.exam?.best?.[unit]
+  const attempts = (progress.exam?.attempts || []).filter(a => (a.unit ?? 't2') === unit)
+  // Only this test's misses: Test 2 leftovers stay on the Test 2 page.
+  const weakIds = needsWorkIds('q').filter(id => BY_ID[id] && unitOfTopic(BY_ID[id].topic) === unit)
+  const SCOPES = scopesFor(unit)
+  const unitQuestions = questionsIn(unit)
 
   useEffect(() => {
     const scope = params.get('scope')
@@ -232,20 +244,22 @@ export default function PracticeExam() {
     saveExamSession({
       ids: items.map(q => q.id),
       layouts: Object.fromEntries(items.map(q => [q.id, layoutOf(q)]).filter(([, l]) => l)),
-      answers, revealedIds, index, mode, scopeLabel, scopeKind,
+      answers, revealedIds, index, mode, scopeLabel, scopeKind, unit: runUnit,
     })
-  }, [stage, items, answers, revealedIds, index, mode, scopeLabel, scopeKind])
+  }, [stage, items, answers, revealedIds, index, mode, scopeLabel, scopeKind, runUnit])
 
   function launch(list, label, kind, forcedMode) {
     if (list.length === 0) return
     setItems(list.map(q => prepare(q)))
     setScopeLabel(label); setScopeKind(kind)
     if (forcedMode) setMode(forcedMode)
+    // A run's unit is its items' unit (a ?scope= link can name another test's topic).
+    setRunUnit(unitOfTopic(list[0].topic))
     setIndex(0); setAnswers({}); setRevealedIds([]); setSaved(null); setStage('taking')
   }
 
   function start(scope, label, kind) {
-    launch(questionsFor(scope), label, kind)
+    launch(questionsFor(scope, Math.random, unit), label, kind)
   }
 
   // A drill exists to fix a mistake, so it always explains as you go.
@@ -257,6 +271,7 @@ export default function PracticeExam() {
     setItems(saved.ids.map(id => prepare(BY_ID[id], saved.layouts?.[id])))
     setAnswers(saved.answers); setRevealedIds(saved.revealedIds); setIndex(saved.index)
     setMode(saved.mode); setScopeLabel(saved.scopeLabel); setScopeKind(saved.scopeKind)
+    setRunUnit(saved.unit)
     setStage('taking')
   }
 
@@ -276,7 +291,7 @@ export default function PracticeExam() {
     const correct = items.filter(x => isFullyRight(x, answers[x.id])).length
     recordExam({
       score: Math.round((credit / items.length) * 100),
-      correct, total: items.length, label: scopeLabel, kind: scopeKind,
+      correct, total: items.length, label: scopeLabel, kind: scopeKind, unit: runUnit,
       results: items.map(x => ({ id: x.id, correct: isFullyRight(x, answers[x.id]) })),
     })
     clearExamSession(); setSaved(null); setStage('results')
@@ -292,7 +307,7 @@ export default function PracticeExam() {
           <p className="text-dim">All five formats on the syllabus, every answer explained, every item labeled with where it came from.</p>
           {best !== null && best !== undefined && (
             <p className="mt-4 inline-block rounded-full bg-ok-soft border border-ok-line px-4 py-1.5 text-sm text-ok font-semibold">
-              Best rehearsal: {best}%
+              Best {unitById(unit).label} rehearsal: {best}%
             </p>
           )}
         </div>
@@ -306,7 +321,7 @@ export default function PracticeExam() {
               <button data-drill-misses onClick={startMisses} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-pink-700 text-white font-bold hover:opacity-90">
                 Drill what I missed ({weakIds.length}) →
               </button>
-              <button onClick={() => clearMisses('q')} className="px-4 py-2.5 rounded-xl bg-surface2 text-dim text-sm font-semibold hover:bg-surface3">
+              <button onClick={() => clearMisses('q', unitQuestions.map(x => x.id))} className="px-4 py-2.5 rounded-xl bg-surface2 text-dim text-sm font-semibold hover:bg-surface3">
                 Clear list
               </button>
             </div>
@@ -317,7 +332,7 @@ export default function PracticeExam() {
           <div className="rounded-2xl border border-warn-line bg-warn-soft p-5 mb-6">
             <p className="font-bold text-strong">You have a set in progress</p>
             <p className="text-sm text-dim mt-0.5">
-              {saved.scopeLabel}: {saved.answeredCount} of {saved.ids.length} answered, saved {describeAge(saved.savedAt)}.
+              {saved.unit !== unit && <>{unitById(saved.unit).label} · </>}{saved.scopeLabel}: {saved.answeredCount} of {saved.ids.length} answered, saved {describeAge(saved.savedAt)}.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 mt-3">
               <button data-resume onClick={resume} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-700 to-orange-700 text-white font-bold hover:opacity-90">
@@ -365,15 +380,15 @@ export default function PracticeExam() {
 
         <p className="text-xs font-bold uppercase tracking-wider text-muted mb-3">One topic</p>
         <div className="grid sm:grid-cols-2 gap-3 mb-6">
-          {TOPICS_BY_PRIORITY.map(t => (
+          {topicsFor(unit).map(t => (
             <button key={t.id} data-scope={t.id} onClick={() => start(t.id, t.label, 'drill')}
               className="text-left rounded-xl border border-line bg-surface p-4 hover:border-accent hover:bg-surface2 transition-colors">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xl">{t.icon}</span>
                 <p className="font-semibold text-strong text-sm flex-1">{t.label}</p>
-                <span className="text-xs text-muted">{QUESTIONS.filter(x => x.topic === t.id).length} Q</span>
+                <span className="text-xs text-muted">{unitQuestions.filter(x => x.topic === t.id).length} Q</span>
               </div>
-              <p className="text-xs text-dim">{t.basis === 'slides' ? `${t.chapter} · class slides` : `${t.chapter} · textbook only`}</p>
+              <p className="text-xs text-dim">{t.chapter} · {t.basis === 'slides' ? 'class slides' : t.basis === 'article' ? 'assigned articles' : 'textbook only'}</p>
             </button>
           ))}
         </div>
@@ -383,12 +398,12 @@ export default function PracticeExam() {
           {kinds.map(k => (
             <button key={k} data-scope={`kind:${k}`} onClick={() => start(`kind:${k}`, `${KINDS[k].label} only`, 'drill')}
               className="text-sm font-semibold text-body rounded-xl border border-line bg-surface px-3 py-2 hover:border-accent hover:bg-surface2">
-              {KINDS[k].label} <span className="text-muted">({QUESTIONS.filter(x => x.kind === k).length})</span>
+              {KINDS[k].label} <span className="text-muted">({unitQuestions.filter(x => x.kind === k).length})</span>
             </button>
           ))}
         </div>
 
-        <FormatNotice className="mb-6" />
+        <FormatNotice className="mb-6" unit={unit} />
 
         {attempts.length > 0 && (
           <div className="rounded-2xl border border-line bg-surface p-5">

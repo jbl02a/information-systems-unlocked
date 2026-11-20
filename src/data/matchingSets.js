@@ -10,6 +10,8 @@
 // Graded all-or-nothing, both columns shuffled (CLAUDE.md rule 1). Recorded as
 // `MS-<id>` with type 'match'. IDs are permanent.
 
+import { T3_MATCHING_SETS } from './t3/index.js'
+
 export const MATCHING_SETS = [
   // ── Ethics & Privacy ─────────────────────────────────────────────────────
   {
@@ -266,6 +268,8 @@ export const MATCHING_SETS = [
     ],
     why: 'Labels, no labels, rewards; deep learning is how; NLP is one thing it can do.',
   },
+  // ── Test 3 (src/data/t3/) ──
+  ...T3_MATCHING_SETS,
 ]
 
 export function setById(id) {

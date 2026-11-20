@@ -22,7 +22,9 @@ import { KEYS } from '../src/lib/storage.js'
 
 const BASE = process.env.BASE ?? 'http://localhost:4715'
 const AA = 4.5
-const ROUTES = (process.env.ROUTES ?? '/,/notes,/notes/ethics,/notes/security,/notes/hardware,/notes/ai,/exam,/matching,/matching?set=S6,/cards,/cards?deck=security,/cram').split(',')
+// Test 3 is the default, so the Test 2 routes carry ?unit=t2 (a lesson or set
+// link switches by itself; the index pages need it).
+const ROUTES = (process.env.ROUTES ?? ['/', '/notes', '/notes/data', '/notes/networks', '/notes/dataviz', '/notes/pm', '/notes/ecommerce', '/notes/social', '/notes/articles', '/exam', '/matching', '/matching?set=DK1', '/cards', '/cards?deck=data', '/cram', '/?unit=t2', '/notes?unit=t2', '/notes/ethics', '/notes/security', '/notes/hardware', '/notes/ai', '/exam?unit=t2', '/matching?set=S6', '/cards?deck=security', '/cram?unit=t2'].join(',')).split(',')
 
 const audit = page => page.evaluate(AA => {
   const lum = c => {

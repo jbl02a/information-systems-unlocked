@@ -112,3 +112,93 @@ material**. Their lessons and questions are `src: 'book'`:
 What would upgrade them: the class decks for those topics; exported textbook
 pages; the publisher's chapter slides; or Test 1 and quiz questions (which would
 also show the real format mix).
+
+---
+
+# Test 3 (materials received 2026-11-20)
+
+## Files received
+
+| File | Deck id | Slides | Used for |
+|---|---|---|---|
+| `Chpt 5 Data and Knowledge Management  Part 1 10_26.pptx` | `ch5a` | 38 | `data` |
+| `Chpt 5 Data and Knowledge Management Part 2 10_28.pptx` | `ch5b` | 20 | `data` |
+| `Chpt 6 Telecommunications and Networking 10_19.pptx` | `ch6a` | 33 | `networks` |
+| `Chpt 6 Telecommunications and Networking Part 2 10_21.pptx` | `ch6b` | 29 | `networks` |
+| `Data Visualization 11_2.pptx` | `dv` | 23 | `dataviz` |
+| `Project Management 11_4.pptx` | `pm` | 50 | `pm` |
+| `Chpt 7 E-Commerce 11_16.pptx` | `ch7` | 40 | `ecommerce` |
+| `Chpt 9 Social Computing 11_18.pptx` | `ch9` | 26 | `social` |
+| `Article FBI Hacked A Dark Web Shopper Plotting A Mail Bomb Hit.docx` | `fbi` | – | `articles` (Forbes, 2017) |
+| `You'll Never Need to Work Again Article.pdf` | `insider` | – | `articles` (BBC, 2025; image-only PDF, read page by page) |
+| `Hero Ship Article.pdf` | `ship` | – | `articles` (BBC, 2025; image-only PDF) |
+| `How Crypto criminals stole.docx` | `crypto` | – | `articles` (BBC, 2026) |
+| `Articles.docx` | – | – | the reading list: 9 bare URLs |
+| `Assignment 5 Cybersecurity.docx` | – | – | context: its Part 1 questions are answered in the articles lesson |
+| `Assignment Receipt Data _ Device Network Speed _ AWS Outage.docx`, `Data Visualization Assignment.docx`, `TikTok Shop Social Commerce Analysis Assignment.docx` | – | – | context only; not tested |
+
+The previous files (Chapters 3 and 4) are unchanged. Deck ids are no longer only
+`ch<N><letter>`: a `ref` is `<deck id> s<N>`, e.g. `dv s10`, `ch7 s15`, and
+can span decks (`ch5a s30, ch5b s2`). `refLabel()` in `SourceBadge.jsx` turns it
+into "10/26 deck, slide 30; 10/28 deck, slide 2".
+
+**Nothing in any Test 3 file gives the date, the format, the coverage or a
+study guide.** The unit's topic list is our reading: every deck taught since
+Test 2 (10/19 to 11/18) plus the assigned articles in the folder. The UI says so
+(`FormatNotice`).
+
+## How they were read
+
+The same as Chapters 3–4: every slide's runs from the raw XML (colors, bold,
+highlights), every content image opened, the image-only PDFs rendered and read
+page by page. Five reading passes produced slide-by-slide transcripts; the
+lessons and questions were written from those, and every item was then
+fact-checked against them in a second, independent pass (fixes: one slide
+reference, one swappable matching pair, the ORDER-PIZZA key, three article
+wording details).
+
+**Emphasis is sparse in these decks.** Most color is theme accents on titles and
+takeaways, not deliberate emphasis. Recorded as `emph`:
+- the three Vs of big data, in blue (`#0070C0`, ch5b s13)
+- the "wireless is only part of the journey" note, in red (ch6b s2)
+- "Planning" and the triple constraint, in blue (`#00B0F0`, pm s8, s24)
+- "addictive", in red (`#FF0000`, ch9 s19–20)
+
+## The assigned articles
+
+`Articles.docx` lists nine URLs, **only two of which are in the folder** (the two
+BBC PDFs). Assignment 5 uses six articles; four are in the folder (FBI, the
+insider offer, the cable ship, crypto). **Not in the folder, so not in the app:**
+the FBI/CISA Gmail and Outlook warning, the DOJ IoT DDoS botnet takedown
+("Authorities Disrupt…", Assignment 5 Q5), water-treatment ransomware (The
+Record), the AI-found bug affecting up to 70% of websites (WSJ), the North
+Korean IT workers story (Assignment 5 Q7), the Sality botnet takedown
+(BleepingComputer), and Allstate's location-data lawsuit (Fox). Adding any of
+them: drop the file in the materials folder, add it to `ARTICLES` in
+`topics.js`, and write items in `src/data/t3/articles.js` with new ids.
+
+The articles are copyrighted: the app summarizes them, and no quotation runs to
+15 words (`scripts/t3/check.mjs` enforces it).
+
+## Things in the Test 3 decks worth knowing
+
+- **ch5a s32's SQL is invalid** (`WHERE city = ('Paris', 'Tokyo')`). The
+  app teaches `IN ('Paris', 'Tokyo')`, flags the slide, and tests only the
+  valid form.
+- **ch5a s17's "one-to-one" example** ("each order can only have one customer")
+  is really many-to-one; **ch5a s22's normalized table** still repeats Molly123;
+  **ch5b s2** writes `39,000` inside SQL; **ch5b s17** says "date" for "data".
+  All flagged in the lesson; no question depends on them.
+- **ch6b s25 prints "July 26"** where a year is meant; **the satellite table is
+  labeled "Table 8.2"**, another chapter's number. PAN, CAN, MAN, gateway and
+  war driving are named but never defined (taught as `book`).
+- **pm s21 duplicates s20; pm s25 names three planning areas but s26–31 teach
+  five** (the app teaches five). The risk / issue / assumption / constraint order
+  differs between slides; the app teaches the definitions, not an order.
+- **ch7 s10's milestone years are misaligned** with their labels; only the
+  first browser (1990), Netflix streaming (2007) and Uber (2010) are used.
+  Typos written correctly: "Apply Pay" (s26), "John Deer" (s33).
+- **Named, not defined (taught as `book`, labeled):** ERP, TPS, CRM (Ch. 5 and
+  7); ETL detail, data lake/mart, KPI (dv); WBS, charter, milestone (pm);
+  business intelligence, GMV (Ch. 7); viral marketing (Ch. 9). Nine Test 3
+  questions in all are `book`; one is `ours` (BETWEEN is inclusive).

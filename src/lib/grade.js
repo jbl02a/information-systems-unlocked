@@ -26,6 +26,8 @@ function forms(s) {
   const out = new Set([t])
   if (t.length > 3 && t.endsWith('s') && !t.endsWith('ss')) out.add(t.slice(0, -1))
   if (t.length > 4 && t.endsWith('es')) out.add(t.slice(0, -2))
+  if (t.length > 4 && t.endsWith('ies')) out.add(t.slice(0, -3) + 'y')   // opportunities = opportunity
+  if (t.length > 3 && t.endsWith('y')) out.add(t.slice(0, -1) + 'ies')
   return out
 }
 

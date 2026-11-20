@@ -14,7 +14,7 @@
 import { QUESTIONS, KINDS } from '../src/data/questions.js'
 import { LESSONS } from '../src/data/lessons.js'
 import { MATCHING_SETS } from '../src/data/matchingSets.js'
-import { TOPICS, DECKS, SOURCES } from '../src/data/topics.js'
+import { TOPICS, DECKS, SOURCES, ARTICLES, UNITS, topicsFor, unitOfTopic, isClassMaterial } from '../src/data/topics.js'
 import { shuffleOptions } from '../src/lib/shuffle.js'
 import { creditFor, blankCorrect, matchCorrect, normalizeBlank } from '../src/lib/grade.js'
 import { rehearsal, prepare, REHEARSAL_SIZE } from '../src/lib/bank.js'
@@ -25,20 +25,27 @@ const ok = (cond, msg, detail = '') => {
   else { fail++; console.log(`  FAIL ${msg}${detail ? `  (${detail})` : ''}`) }
 }
 const topicIds = TOPICS.map(t => t.id)
+const decksIn = ref => [...String(ref ?? '').matchAll(/([a-z0-9]+) s\d/g)].map(m => m[1])
 
 console.log('\nEvery item')
 {
   const ids = QUESTIONS.map(q => q.id)
   ok(new Set(ids).size === ids.length, `${ids.length} ids, all unique`)
-  const prefix = { ethics: 'eth', security: 'sec', hardware: 'hw', software: 'sw', acquiring: 'acq', ai: 'ai' }
+  const prefix = { ethics: 'eth', security: 'sec', hardware: 'hw', software: 'sw', acquiring: 'acq', ai: 'ai',
+    data: 'dat', networks: 'net', dataviz: 'viz', pm: 'pm', ecommerce: 'ec', social: 'soc', articles: 'art' }
   ok(QUESTIONS.every(q => q.id.startsWith(prefix[q.topic] + '-')), 'every id carries its topic prefix')
   ok(QUESTIONS.every(q => topicIds.includes(q.topic)), 'every item belongs to a syllabus topic')
   ok(QUESTIONS.every(q => SOURCES[q.src]), 'every item says where its fact came from (src)')
   ok(QUESTIONS.every(q => KINDS[q.kind]), 'every item is one of the five kinds')
   ok(QUESTIONS.every(q => typeof q.explanation === 'string' && q.explanation.length > 15), 'every item has an explanation')
-  const deckRef = /^ch\d[a-z] s/
-  ok(QUESTIONS.filter(q => q.src === 'slides').every(q => deckRef.test(q.ref ?? '') && DECKS[q.ref.slice(0, 4)]),
-    'every slide item cites a real deck and slide')
+  // 'ch4a s17', 'dv s5', 'ch5a s30, ch5b s2': every deck named must exist and
+  // belong to the item's own topic.
+  ok(QUESTIONS.filter(q => q.src === 'slides').every(q => decksIn(q.ref).length && decksIn(q.ref).every(d => DECKS[d]?.topic === q.topic)),
+    'every slide item cites a real deck of its own topic, and a slide')
+  ok(QUESTIONS.filter(q => q.src === 'article').every(q => ARTICLES[q.ref] && q.topic === 'articles'),
+    'every article item names one of the assigned articles')
+  ok(TOPICS.every(t => UNITS.some(u => u.id === t.unit)), 'every topic belongs to a test (unit)')
+  for (const u of UNITS) ok(topicsFor(u.id).length > 0, `${u.label}: ${topicsFor(u.id).length} topics, ${QUESTIONS.filter(q => unitOfTopic(q.topic) === u.id).length} questions`)
   // A textbook item on a textbook-only topic is the norm; a slide item on a
   // topic with no decks would be a contradiction.
   ok(QUESTIONS.filter(q => q.src === 'slides').every(q => TOPICS.find(t => t.id === q.topic).basis === 'slides'),
@@ -88,12 +95,14 @@ console.log('\nFill in the blank')
   ok(bl.every(q => q.prompt.includes('____') && Array.isArray(q.answers) && q.answers.length), `${bl.length} items, each with a blank and an answer list`)
   for (const q of bl) {
     const a = q.answers[0]
-    const variants = [a, a.toUpperCase(), `  ${a}  `, `the ${a}`, `${a}.`, `${a}s`]
+    // Plural variant only for a singular answer ("packets" + s is not a real slip).
+    const variants = [a, a.toUpperCase(), `  ${a}  `, `the ${a}`, `${a}.`, ...(/s$/i.test(a) ? [] : [`${a}s`])]
     ok(variants.every(v => blankCorrect(q, v)), `${q.id} accepts "${a}" in case, spacing, article, punctuation and plural variants`)
     ok(!blankCorrect(q, '') && !blankCorrect(q, 'zzzz'), `${q.id} rejects blank and wrong answers`)
   }
   ok(normalizeBlank('Moore’s') === normalizeBlank("Moore's"), 'curly and straight apostrophes are the same')
   ok(blankCorrect({ answers: ['device'] }, 'devices') && blankCorrect({ answers: ['box'] }, 'boxes'), 'plurals in -s and -es both accepted')
+  ok(blankCorrect({ answers: ['opportunities'] }, 'opportunity') && blankCorrect({ answers: ['opportunity'] }, 'opportunities') && blankCorrect({ answers: ['packets'] }, 'packet'), 'singular and plural both ways, including -y / -ies')
 }
 
 console.log('\nMatching')
@@ -123,18 +132,20 @@ console.log('\nShort answer')
     'credit is the share of key points ticked')
 }
 
-console.log('\nThe rehearsal')
-{
+console.log('\nThe rehearsal, per test')
+for (const u of UNITS) {
   let seed = 7
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647
-  const r = rehearsal(rand)
-  ok(r.length === REHEARSAL_SIZE, `draws ${REHEARSAL_SIZE} items`)
-  ok(new Set(r.map(q => q.id)).size === r.length, 'no item twice')
-  ok(TOPICS.every(t => r.some(q => q.topic === t.id)), 'every syllabus topic appears')
-  const slideShare = r.filter(q => TOPICS.find(t => t.id === q.topic).basis === 'slides').length / r.length
-  ok(slideShare >= 0.6, `${Math.round(slideShare * 100)}% from the two slide-backed topics`)
-  const inSlideTopics = r.filter(q => TOPICS.find(t => t.id === q.topic).basis === 'slides')
-  ok(inSlideTopics.every(q => q.src === 'slides'), 'within slide-backed topics, only slide items are drawn while any remain')
+  const r = rehearsal(rand, REHEARSAL_SIZE, u.id)
+  const topicOf = q => TOPICS.find(t => t.id === q.topic)
+  ok(r.length === REHEARSAL_SIZE, `${u.label}: draws ${REHEARSAL_SIZE} items`)
+  ok(new Set(r.map(q => q.id)).size === r.length, `${u.label}: no item twice`)
+  ok(r.every(q => unitOfTopic(q.topic) === u.id), `${u.label}: every item is from this test, none from the other`)
+  ok(topicsFor(u.id).every(t => r.some(q => q.topic === t.id)), `${u.label}: every topic appears`)
+  const classShare = r.filter(q => isClassMaterial(topicOf(q))).length / r.length
+  ok(classShare >= 0.6, `${u.label}: ${Math.round(classShare * 100)}% from topics with class material`)
+  ok(r.filter(q => isClassMaterial(topicOf(q))).every(q => q.src === 'slides' || q.src === 'article'),
+    `${u.label}: within class-material topics, only class items are drawn while any remain`)
 }
 
 console.log('\nLessons')
@@ -146,7 +157,7 @@ console.log('\nLessons')
       `${l.id}: every section, key term and know-this item is tagged with its source`)
     ok(l.knowThis.length >= 3 && l.knowThis.every(k => k.q && k.a), `${l.id}: ${l.knowThis.length} know-this items, each with an answer`)
     if (t.basis !== 'slides') ok([...l.sections, ...l.keyTerms, ...l.knowThis].every(x => x.src !== 'slides'), `${l.id}: claims no slides (none exist)`)
-    else ok(l.sections.filter(s => s.src === 'slides').every(s => /^ch\d[a-z] s/.test(s.ref ?? '')), `${l.id}: every slide section cites its slides`)
+    else ok(l.sections.filter(s => s.src === 'slides').every(s => decksIn(s.ref).length && decksIn(s.ref).every(d => DECKS[d]?.topic === l.topic)), `${l.id}: every slide section cites its own topic's slides`)
   }
 }
 

@@ -62,10 +62,14 @@ export function ProgressProvider({ children }) {
       .map(([id]) => id)
   }
 
-  function clearMisses(type) {
+  // `onlyIds` limits the clear to one unit's items: "Clear list" on Test 3 must
+  // never wipe what he still has to fix for Test 2.
+  function clearMisses(type, onlyIds) {
+    const only = onlyIds ? new Set(onlyIds) : null
     setProgress(prev => {
-      if (type === undefined) return { ...prev, misses: {} }
-      const misses = Object.fromEntries(Object.entries(prev.misses || {}).filter(([, m]) => (m.type ?? 'q') !== type))
+      if (type === undefined && !only) return { ...prev, misses: {} }
+      const misses = Object.fromEntries(Object.entries(prev.misses || {}).filter(([id, m]) =>
+        !((type === undefined || (m.type ?? 'q') === type) && (!only || only.has(id)))))
       return { ...prev, misses }
     })
   }

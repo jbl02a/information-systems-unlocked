@@ -11,9 +11,15 @@
 // short-answer credit follows the ticked points; know-this answers stay hidden
 // until clicked; progress and an in-progress attempt survive a reload; an old
 // or corrupt save does not crash the app; no horizontal overflow.
+//
+// UNITS: everything above runs for Test 2 AND Test 3 (each sees only its own
+// items), plus: a new device lands on Test 3; a Test 3 rehearsal moves only Test
+// 3's best; "Clear list" on Test 3 leaves Test 2's misses alone; a Test 2-era
+// save still shows its best under Test 2; both cram sheets print on two pages.
 import { chromium } from 'playwright'
 import { KEYS } from '../src/lib/storage.js'
 import { QUESTIONS } from '../src/data/questions.js'
+import { unitOfTopic } from '../src/data/topics.js'
 
 const BASE = process.env.BASE ?? 'http://localhost:4715'
 const BY_ID = Object.fromEntries(QUESTIONS.map(q => [q.id, q]))
@@ -22,14 +28,21 @@ const ok = (c, m, d = '') => { if (c) { pass++; console.log(`  ok   ${m}`) } els
 
 const browser = await chromium.launch()
 
-async function fresh(theme) {
+async function fresh(theme, unit) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
   const page = await ctx.newPage()
   page.errors = []
   page.on('pageerror', e => page.errors.push(String(e)))
   await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' })
-  await page.evaluate(([k, t]) => { localStorage.clear(); localStorage.setItem(k, t) }, [KEYS.theme, theme])
+  await page.evaluate(([k, t, ku, u]) => { localStorage.clear(); localStorage.setItem(k, t); if (u) localStorage.setItem(ku, u) }, [KEYS.theme, theme, KEYS.unit, unit])
   return { ctx, page }
+}
+
+// What each test's run uses: a lesson for know-this, a topic to resume, a
+// matching set with 4+ pairs, a card deck.
+const PER_UNIT = {
+  t2: { lesson: 'security', topic: 'ethics', set: 'S6', deck: 'security' },
+  t3: { lesson: 'data', topic: 'pm', set: 'DK1', deck: 'data' },
 }
 
 async function overflow(page, label) {
@@ -54,9 +67,10 @@ async function nextOrSubmit(page) {
 
 const score = async page => Number((await page.textContent('[data-score]')).replace('%', ''))
 
-for (const theme of ['light', 'dark']) {
-  console.log(`\n── ${theme} theme, 390px ──`)
-  const { ctx, page } = await fresh(theme)
+for (const [theme, unit] of [['light', 't3'], ['dark', 't3'], ['light', 't2'], ['dark', 't2']]) {
+  console.log(`\n── ${unit}, ${theme} theme, 390px ──`)
+  const U = PER_UNIT[unit]
+  const { ctx, page } = await fresh(theme, unit)
 
   // 1. Answering A on every multiple-choice item scores about 25%.
   {
@@ -90,6 +104,7 @@ for (const theme of ['light', 'dark']) {
   {
     await startScope(page, 'kind:blank', 'practice')
     const q = BY_ID[await itemId(page)]
+    ok(unitOfTopic(q.topic) === unit, `the format drill serves only ${unit} items`, q.id)
     await page.fill('[data-blank]', `  The ${q.answers[0].toUpperCase()}.  `)
     await page.click('button:text-is("Check")')
     const fb = await page.textContent('[data-feedback]')
@@ -134,14 +149,14 @@ for (const theme of ['light', 'dark']) {
       if (await page.$('[data-submit]')) { await page.click('[data-submit]'); await page.waitForSelector('[data-score]'); break }
       await page.click('[data-next]')
     }
-    const total = QUESTIONS.filter(x => x.kind === 'short').length
+    const total = QUESTIONS.filter(x => x.kind === 'short' && unitOfTopic(x.topic) === unit).length
     const expect = Math.round((1 / q.points.length) / total * 100)
     ok(await score(page) === expect, `ticking 1 of ${q.points.length} points on one short answer scores ${expect}% of the set`)
   }
 
   // 6. Know-this answers stay hidden until clicked.
   {
-    await page.goto(BASE + '/notes/security', { waitUntil: 'domcontentloaded' })
+    await page.goto(BASE + `/notes/${U.lesson}`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('[data-know]')
     const items = await page.$$('[data-know]')
     ok(items.length > 5 && (await page.$$('[data-answer]')).length === 0, `${items.length} know-this items, no answer visible on load`)
@@ -149,7 +164,7 @@ for (const theme of ['light', 'dark']) {
     ok((await page.$$('[data-answer]')).length === 1, 'Show answer reveals exactly one')
     await page.click('button:text-is("Show all answers")')
     ok((await page.$$('[data-answer]')).length === items.length, 'Show all answers reveals every one')
-    await overflow(page, '/notes/security, all answers open')
+    await overflow(page, `/notes/${U.lesson}, all answers open`)
   }
 
   // 7. Progress and an in-progress attempt survive a reload.
@@ -161,7 +176,7 @@ for (const theme of ['light', 'dark']) {
       `attempt history survives a reload (${after.exam.attempts.length} attempts)`)
     ok(Object.keys(after.misses).length > 0, `misses survive a reload (${Object.keys(after.misses).length} tracked)`)
 
-    await startScope(page, 'ethics', 'exam')
+    await startScope(page, U.topic, 'exam')
     const firstId = await itemId(page)
     const shownBefore = await page.$$eval('[data-option] span.flex-1', els => els.map(e => e.textContent)).catch(() => [])
     await nextOrSubmit(page)
@@ -178,9 +193,9 @@ for (const theme of ['light', 'dark']) {
   // 7b. /matching: one wrong pair fails the set; all right clears it; recorded.
   {
     const { MATCHING_SETS } = await import('../src/data/matchingSets.js')
-    const set = MATCHING_SETS.find(s => s.id === 'S6')
+    const set = MATCHING_SETS.find(s => s.id === U.set)
     await page.goto(BASE + '/matching', { waitUntil: 'domcontentloaded' })
-    await page.click('[data-set="S6"]')
+    await page.click(`[data-set="${U.set}"]`)
     await page.waitForSelector('[data-match-row]')
     const fill = async swap => {
       const rows = await page.$$('[data-match-row]')
@@ -196,14 +211,14 @@ for (const theme of ['light', 'dark']) {
     await page.click('[data-retry]')
     await fill(false)
     ok(await page.$('[data-match-result="right"]') !== null, '/matching: all pairs right clears the set')
-    const rec = await page.evaluate(k => JSON.parse(localStorage.getItem(k)).misses['MS-S6'], KEYS.progress)
+    const rec = await page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).misses[`MS-${id}`], [KEYS.progress, U.set])
     ok(rec?.type === 'match' && rec.wrong === 1 && rec.right === 1 && rec.last === 'right', '/matching records the miss, then the clear', JSON.stringify(rec))
   }
 
   // 7c. Cards: the back stays hidden until flipped; "didn't" feeds the missed deck.
   {
     await page.goto(BASE + '/cards', { waitUntil: 'domcontentloaded' })
-    await page.click('[data-deck="security"]')
+    await page.click(`[data-deck="${U.deck}"]`)
     await page.waitForSelector('[data-card]')
     ok(await page.$('[data-back]') === null, 'a card shows its front only until flipped')
     await page.click('[data-card]')
@@ -236,12 +251,15 @@ for (const theme of ['light', 'dark']) {
   const path = await import('node:path')
   const ctx = await browser.newContext()
   const page = await ctx.newPage()
-  await page.goto(BASE + '/cram', { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.cram-page')
-  const file = path.join(os.tmpdir(), 'is-cram-check.pdf')
-  await page.pdf({ path: file, format: 'Letter' })
-  const pages = (fs.readFileSync(file, 'latin1').match(/\/Type\s*\/Page[^s]/g) || []).length
-  ok(pages >= 1 && pages <= 2, `the cram sheet prints on ${pages} page(s), limit 2`)
+  for (const u of ['t2', 't3']) {
+    await page.goto(BASE + `/cram?unit=${u}`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('.cram-page')
+    ok((await page.textContent('.cram-head h1')).includes(u === 't2' ? 'Test 2' : 'Test 3'), `?unit=${u} shows the ${u} sheet`)
+    const file = path.join(os.tmpdir(), `is-cram-check-${u}.pdf`)
+    await page.pdf({ path: file, format: 'Letter' })
+    const pages = (fs.readFileSync(file, 'latin1').match(/\/Type\s*\/Page[^s]/g) || []).length
+    ok(pages >= 1 && pages <= 2, `the ${u} cram sheet prints on ${pages} page(s), limit 2`)
+  }
   await page.emulateMedia({ media: 'print' })
   const hidden = await page.evaluate(() => ['nav', 'footer.app-foot', '.no-print']
     .every(sel => [...document.querySelectorAll(sel)].every(el => getComputedStyle(el).display === 'none')))
@@ -261,8 +279,40 @@ for (const theme of ['light', 'dark']) {
   })), KEYS.progress)
   await page.goto(BASE + '/exam', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('h1')
-  ok(await page.isVisible('text=Best rehearsal: 55%'), 'an older save loads, best score kept')
-  ok(Boolean(await page.$('[data-drill-misses]')), 'its misses and held question feed the drill')
+  // A device with no remembered test opens on Test 3; the Test 2 best is not shown there.
+  ok(await page.getAttribute('[aria-label="Test 3"]', 'aria-pressed') === 'true', 'a device with no remembered test lands on Test 3')
+  ok(!(await page.isVisible('text=rehearsal: 55%')), 'the Test 2 best is not shown under Test 3')
+  await page.click('[aria-label="Test 2"]')
+  await page.waitForSelector('text=Best Test 2 rehearsal: 55%')
+  ok(await page.isVisible('text=Best Test 2 rehearsal: 55%'), 'switching to Test 2: the Test 2-era save loads, best score kept')
+  ok(Boolean(await page.$('[data-drill-misses]')), 'its misses and held question feed the Test 2 drill')
+
+  // "Clear list" on Test 3 clears only Test 3's misses.
+  await page.evaluate(k => {
+    const p = JSON.parse(localStorage.getItem(k))
+    p.misses['dat-01'] = { wrong: 1, right: 0, last: 'wrong' }
+    localStorage.setItem(k, JSON.stringify(p))
+  }, KEYS.progress)
+  await page.goto(BASE + '/exam?unit=t3', { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('[data-drill-misses]')
+  ok((await page.textContent('[data-drill-misses]')).includes('(1)'), 'Test 3 counts only its own miss')
+  await page.click('button:text-is("Clear list")')
+  const left = await page.evaluate(k => Object.keys(JSON.parse(localStorage.getItem(k)).misses), KEYS.progress)
+  ok(!left.includes('dat-01') && left.includes('sec-03') && left.includes('eth-11'), '"Clear list" on Test 3 leaves Test 2 misses and holds alone', left.join(','))
+
+  // A Test 3 rehearsal moves only Test 3's best.
+  await page.click('[data-mode="exam"]')
+  await page.click('[data-scope="rehearsal"]')
+  await page.waitForSelector('[data-item]')
+  const firstUnit = unitOfTopic(BY_ID[await itemId(page)].topic)
+  for (;;) {
+    if (await page.$('[data-submit]')) { await page.click('[data-submit]'); await page.waitForSelector('[data-score]'); break }
+    await page.click('[data-next]')
+  }
+  const best = await page.evaluate(k => JSON.parse(localStorage.getItem(k)).exam.best, KEYS.progress)
+  ok(firstUnit === 't3' && best.t3 === 0 && best.t2 === 55, 'a blank Test 3 rehearsal records 0 under Test 3 and leaves Test 2 at 55', JSON.stringify(best))
+  const last = await page.evaluate(k => JSON.parse(localStorage.getItem(k)).exam.attempts[0], KEYS.progress)
+  ok(last.unit === 't3' && last.kind === 'exam', 'the attempt is filed under Test 3', JSON.stringify(last))
   await page.evaluate(k => localStorage.setItem(k, '{not json'), KEYS.progress)
   await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' })
   ok(await page.isVisible('h1'), 'a corrupt save starts fresh instead of crashing')

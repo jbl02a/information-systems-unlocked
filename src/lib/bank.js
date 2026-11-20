@@ -1,7 +1,10 @@
 // Choosing and laying out practice items. Pure functions, so the verification
 // script exercises exactly what the app serves.
 import { QUESTIONS } from '../data/questions.js'
-import { TOPICS, priorityOf } from '../data/topics.js'
+import { topicsFor, unitOfTopic, priorityOf, isClassMaterial } from '../data/topics.js'
+
+/** One unit's questions. */
+export const questionsIn = unit => QUESTIONS.filter(q => unitOfTopic(q.topic) === unit)
 import { permutation, shuffleOptions } from './shuffle.js'
 
 export function shuffle(arr, rand = Math.random) {
@@ -20,9 +23,11 @@ export const REHEARSAL_SIZE = 40
 // every textbook-only topic, slide items first within each topic. When a deck
 // arrives for a textbook topic, flipping its `basis` in topics.js moves it into
 // the larger share automatically.
-export function rehearsal(rand = Math.random, size = REHEARSAL_SIZE) {
-  const slideTopics = TOPICS.filter(t => t.basis === 'slides')
-  const bookTopics = TOPICS.filter(t => t.basis !== 'slides')
+export function rehearsal(rand = Math.random, size = REHEARSAL_SIZE, unit = 't2') {
+  const TOPICS = topicsFor(unit)
+  // Assigned articles count as class material, the same as slides (Test 3).
+  const slideTopics = TOPICS.filter(isClassMaterial)
+  const bookTopics = TOPICS.filter(t => !isClassMaterial(t))
   const perBook = bookTopics.length ? 3 : 0
   const slideShare = size - perBook * bookTopics.length
   // Split the slide share in proportion to how much each slide topic has.
@@ -44,10 +49,10 @@ export function rehearsal(rand = Math.random, size = REHEARSAL_SIZE) {
   return shuffle(out, rand)
 }
 
-export function questionsFor(scope, rand = Math.random) {
-  if (scope === 'rehearsal') return rehearsal(rand)
-  if (scope === 'full') return shuffle(QUESTIONS, rand)
-  if (scope?.startsWith('kind:')) return shuffle(QUESTIONS.filter(q => q.kind === scope.slice(5)), rand)
+export function questionsFor(scope, rand = Math.random, unit = 't2') {
+  if (scope === 'rehearsal') return rehearsal(rand, REHEARSAL_SIZE, unit)
+  if (scope === 'full') return shuffle(questionsIn(unit), rand)
+  if (scope?.startsWith('kind:')) return shuffle(questionsIn(unit).filter(q => q.kind === scope.slice(5)), rand)
   return shuffle(QUESTIONS.filter(q => q.topic === scope), rand)
 }
 

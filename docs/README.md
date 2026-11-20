@@ -58,3 +58,24 @@ When the instructor's slides arrive for a topic (say, AI):
 
 The same steps apply to an instructor study guide or review deck, which outranks
 everything else: add it as a source, and build the know-this lists from it.
+
+## Adding a unit (the next test)
+
+Test 3 was added this way (`phase-log.md`, Phase 6). For a final or Test 4:
+
+1. **`topics.js`:** add the unit to `UNITS` and make it `DEFAULT_UNIT`. Then add
+   its decks to `DECKS` and its topics to `TOPICS` with `unit` set and new
+   topic ids.
+2. **Move devices forward once.** A device that remembers `t3` will not see the
+   new default. Add a one-time move key to `UnitContext.jsx`, copying
+   accounting-unlocked's `accounting-unlocked-unit-moved-u4`.
+3. **Content:** one module per topic in `src/data/<unit>/` (LESSON, QUESTIONS,
+   MATCHING_SETS) with new id prefixes, gated by a copy of `scripts/t3/check.mjs`.
+   Add the prefixes to `verify-bank.mjs`.
+4. **Per-unit copy:** home (`COPY`), notes intro (`INDEX_INTRO`), the format
+   notice, the study plan, the exam scopes' rehearsal blurb and a cram sheet.
+   Search for `'t3'` to find every place.
+5. **Progress:** `emptyBest()` picks up the new unit from `UNIT_IDS`, so no shape
+   change is needed. `npm run progress` proves it.
+6. **`verify-browser.mjs`** (`PER_UNIT` and the unit loop) and **`verify-themes.mjs`**
+   (the routes).

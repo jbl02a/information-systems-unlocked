@@ -6,4 +6,5 @@ export const KEYS = {
   progress: `${PREFIX}-progress`,
   session: `${PREFIX}-exam-session`,
   theme: `${PREFIX}-theme`,
+  unit: `${PREFIX}-unit`,
 }

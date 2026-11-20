@@ -22,6 +22,8 @@
 //
 // IDs are permanent: they key his misses history (CLAUDE.md rule 2).
 
+import { T3_QUESTIONS } from './t3/index.js'
+
 export const QUESTIONS = [
   // ── Ethics & Privacy (Chapter 3) ─────────────────────────────────────────
   {
@@ -1142,6 +1144,8 @@ export const QUESTIONS = [
     points: ['Supervised: learns from labeled examples', 'Unsupervised: finds patterns in unlabeled data', 'Reinforcement: trial and error with rewards'],
     explanation: 'Labels, no labels, rewards.',
   },
+  // ── Test 3 (src/data/t3/) ──
+  ...T3_QUESTIONS,
 ]
 
 export function questionById(id) {

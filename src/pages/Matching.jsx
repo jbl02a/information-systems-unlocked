@@ -6,8 +6,9 @@ import { prepare } from '../lib/bank'
 import { matchCorrect } from '../lib/grade'
 import MatchGrid from '../components/MatchGrid'
 import SourceBadge from '../components/SourceBadge'
-import { MATCHING_SETS, setById } from '../data/matchingSets'
-import { TOPICS_BY_PRIORITY } from '../data/topics'
+import { MATCHING_SETS as ALL_SETS, setById } from '../data/matchingSets'
+import { topicsFor, unitOfTopic } from '../data/topics'
+import { useUnit, useSyncUnit } from '../context/UnitContext'
 
 // A set clears only when every pair is right. That is the safe way to practice,
 // not a quote: the syllabus says matching MAY appear and says nothing about how
@@ -16,6 +17,10 @@ export default function Matching() {
   const { progress, record } = useProgress()
   const [params, setParams] = useSearchParams()
   const openId = params.get('set')
+  const { unit } = useUnit()
+  // A ?set= link to the other test's set switches the test to match it.
+  useSyncUnit(setById(openId) ? unitOfTopic(setById(openId).topic) : null)
+  const MATCHING_SETS = ALL_SETS.filter(s => unitOfTopic(s.topic) === unit)
   const [shown, setShown] = useState(null)
   const [value, setValue] = useState({})
   const [result, setResult] = useState(null)
@@ -43,7 +48,7 @@ export default function Matching() {
     if (shown?.id !== set.id) setShown(layout)
     const allPicked = set.pairs.every(p => value[p.left])
     const idx = MATCHING_SETS.indexOf(set)
-    const next = MATCHING_SETS[idx + 1]
+    const next = idx >= 0 ? MATCHING_SETS[idx + 1] : null
     return (
       <div className="max-w-2xl mx-auto">
         <button onClick={() => open(null)} className="text-xs text-dim hover:text-strong mb-3">← All matching sets</button>
@@ -99,12 +104,12 @@ export default function Matching() {
         <p className="text-sm text-body leading-relaxed">
           The syllabus says the test <strong className="text-strong">may</strong> include matching. It does not say
           what would be matched, or how a part-right answer is scored. We built these sets from the term-and-meaning
-          material in the slides and the textbook topics, and grade them all or nothing, the safe way to practice.
+          material in the slides{unit === 't2' ? ' and the textbook topics' : ' and the assigned articles'}, and grade them all or nothing, the safe way to practice.
           The facts carry their source badge; the arrangement is ours.
         </p>
       </div>
 
-      {TOPICS_BY_PRIORITY.map(t => {
+      {topicsFor(unit).map(t => {
         const sets = MATCHING_SETS.filter(s => s.topic === t.id)
         if (!sets.length) return null
         return (

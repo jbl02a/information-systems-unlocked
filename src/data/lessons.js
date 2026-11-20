@@ -15,6 +15,8 @@
 // lists are OURS, assembled from what the instructor emphasized and defined, and
 // the UI says so. Never present one as the instructor's own list.
 
+import { T3_LESSONS } from './t3/index.js'
+
 export const LESSONS = [
   // ── Chapter 3 · Ethics and Privacy ───────────────────────────────────────
   {
@@ -740,6 +742,8 @@ export const LESSONS = [
       { q: 'What is a hallucination in generative AI?', a: 'A **confident but false** answer. It is why generative AI output must be checked.', src: 'book' },
     ],
   },
+  // ── Test 3 (src/data/t3/) ──
+  ...T3_LESSONS,
 ]
 
 export function lessonById(id) {

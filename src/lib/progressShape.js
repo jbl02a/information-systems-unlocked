@@ -3,9 +3,13 @@
 // node against hand-written old saves: his progress lives only on his device,
 // and a bad migration is not recoverable.
 //
-// SHAPE (version 1)
-//   v:      1
-//   exam:   { attempts: [{ score, correct, total, label, kind, date }], best }
+// SHAPE (version 2)
+//   v:      2
+//   exam:   { attempts: [{ score, correct, total, label, kind, unit, date }],
+//             best: { t2, t3 } }        one best score PER TEST (units)
+//
+// Version 1 (Test 2 only) had a bare-number `best` and attempts with no `unit`.
+// Every one of them was a Test 2 attempt, so migrate() files them under 't2'.
 //   misses: { [id]: { wrong, right, last: 'right'|'wrong', at, hold?, type?, label? } }
 //
 // `misses` holds every tracked thing, told apart by id prefix and `type`:
@@ -17,11 +21,15 @@
 // A write to `misses` must SPREAD the existing entry: `hold` is set by him, not
 // by grading, and rebuilding the object drops it (CLAUDE.md rule 7).
 
-export const VERSION = 1
+import { UNIT_IDS } from '../data/topics.js'
+
+export const VERSION = 2
 export const ATTEMPT_CAP = 10
 
+export const emptyBest = () => Object.fromEntries(UNIT_IDS.map(u => [u, null]))
+
 export function buildDefault() {
-  return { v: VERSION, exam: { attempts: [], best: null }, misses: {} }
+  return { v: VERSION, exam: { attempts: [], best: emptyBest() }, misses: {} }
 }
 
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
@@ -48,8 +56,13 @@ export function migrate(saved) {
       ...a,
       score: num(a.score), correct: num(a.correct), total: num(a.total),
       kind: a.kind === 'exam' ? 'exam' : 'drill',
+      // Attempts saved before units existed were all Test 2.
+      unit: UNIT_IDS.includes(a.unit) ? a.unit : 't2',
     }))
-  const best = typeof saved.exam?.best === 'number' ? saved.exam.best : null
+  const best = emptyBest()
+  const raw = saved.exam?.best
+  if (typeof raw === 'number') best.t2 = raw
+  else if (raw && typeof raw === 'object') for (const u of UNIT_IDS) best[u] = typeof raw[u] === 'number' ? raw[u] : null
   const misses = {}
   if (saved.misses && typeof saved.misses === 'object' && !Array.isArray(saved.misses)) {
     for (const [id, m] of Object.entries(saved.misses)) {
@@ -60,12 +73,19 @@ export function migrate(saved) {
   return { v: VERSION, exam: { attempts: capAttempts(attempts), best }, misses }
 }
 
-/** Keep the newest ATTEMPT_CAP of each kind, so drills never evict rehearsals. */
+/**
+ * Keep the newest ATTEMPT_CAP of each kind PER UNIT, so drills never evict
+ * rehearsals and a run of Test 3 work never pushes Test 2's history out.
+ */
 export function capAttempts(all) {
   const sorted = [...all].sort((a, b) => String(b.date).localeCompare(String(a.date)))
-  const exams = sorted.filter(a => a.kind === 'exam').slice(0, ATTEMPT_CAP)
-  const drills = sorted.filter(a => a.kind !== 'exam').slice(0, ATTEMPT_CAP)
-  return [...exams, ...drills].sort((a, b) => String(b.date).localeCompare(String(a.date)))
+  const kept = []
+  for (const u of UNIT_IDS) {
+    const mine = sorted.filter(a => (a.unit ?? 't2') === u)
+    kept.push(...mine.filter(a => a.kind === 'exam').slice(0, ATTEMPT_CAP))
+    kept.push(...mine.filter(a => a.kind !== 'exam').slice(0, ATTEMPT_CAP))
+  }
+  return kept.sort((a, b) => String(b.date).localeCompare(String(a.date)))
 }
 
 /** Record one outcome, keeping every field grading does not own. */
@@ -84,11 +104,15 @@ export function withResult(misses, id, correct, extra = {}) {
   }
 }
 
-/** Only a full rehearsal moves the best score; a drill's denominator is not comparable. */
-export function applyExam(prev, { score, correct, total, label, kind = 'drill', results = [] }) {
-  const attempt = { score, correct, total, label, kind, date: new Date().toISOString() }
+/**
+ * Only a full rehearsal moves the best score, and only its own unit's; a drill's
+ * denominator is not comparable. `unit` is the unit the attempt STARTED in.
+ */
+export function applyExam(prev, { score, correct, total, label, kind = 'drill', unit = 't2', results = [] }) {
+  const attempt = { score, correct, total, label, kind, unit, date: new Date().toISOString() }
   const attempts = capAttempts([attempt, ...(prev.exam?.attempts || [])])
-  const best = kind === 'exam' ? Math.max(score, prev.exam?.best ?? 0) : (prev.exam?.best ?? null)
+  const prevBest = { ...emptyBest(), ...(prev.exam?.best && typeof prev.exam.best === 'object' ? prev.exam.best : {}) }
+  const best = kind === 'exam' ? { ...prevBest, [unit]: Math.max(score, prevBest[unit] ?? 0) } : prevBest
   let misses = { ...(prev.misses || {}) }
   for (const r of results) if (r?.id) misses = withResult(misses, r.id, r.correct)
   return { ...prev, exam: { attempts, best }, misses }

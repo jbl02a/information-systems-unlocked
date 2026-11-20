@@ -1,4 +1,7 @@
 import { useScrollTop } from '../lib/useScrollTop'
+import { useUnit } from '../context/UnitContext'
+import { unitById } from '../data/topics'
+import CramSheetT3 from './CramSheetT3'
 
 // One printable sheet for the night before, held to TWO Letter pages (asserted
 // by scripts/verify-browser.mjs printing it to PDF). Light-on-white because its
@@ -10,12 +13,13 @@ import { useScrollTop } from '../lib/useScrollTop'
 // onto a third page.
 export default function CramSheet() {
   useScrollTop([])
+  const { unit } = useUnit()
   return (
     <div className="cram">
       <div className="cram-toolbar no-print">
         <div>
           <h1 className="text-2xl font-extrabold text-strong">Cram Sheet</h1>
-          <p className="text-sm text-dim">Test 2 on two printed pages. For the night before and the walk in.</p>
+          <p className="text-sm text-dim">{unitById(unit).label} on two printed pages. For the night before and the walk in.</p>
         </div>
         <button onClick={() => window.print()}
           className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-700 text-white font-bold hover:opacity-90 shrink-0">
@@ -23,6 +27,13 @@ export default function CramSheet() {
         </button>
       </div>
 
+      {unit === 't3' ? <CramSheetT3 /> : <CramSheetT2 />}
+    </div>
+  )
+}
+
+function CramSheetT2() {
+  return (
       <div className="cram-page">
         <header className="cram-head">
           <h1>Intro to Information Systems &mdash; Test 2 Cram Sheet</h1>
@@ -132,6 +143,5 @@ export default function CramSheet() {
 
         <p className="cram-foot">Information Systems Unlocked &middot; Chapters 3&ndash;4 from the class slides; other topics from standard textbook content &mdash; check them against your notes.</p>
       </div>
-    </div>
   )
 }
