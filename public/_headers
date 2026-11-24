@@ -1,0 +1,11 @@
+# Cloudflare Pages / Netlify headers — the same rules as vercel.json, so a new
+# release is detected (the service worker and manifest are never cached) when
+# the app is hosted off Vercel. Cloudflare Pages serves index.html for unknown
+# paths by itself (no 404.html in dist), which covers vercel.json's rewrite.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+  Service-Worker-Allowed: /
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: application/manifest+json
